@@ -95,3 +95,6 @@ Temporary Items
 *.swp
 *.lock
 *.log
+
+# Snippets
+snippets/
