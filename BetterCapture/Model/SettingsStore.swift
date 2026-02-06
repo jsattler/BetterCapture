@@ -25,6 +25,26 @@ enum VideoCodec: String, CaseIterable, Identifiable {
             return false
         }
     }
+
+    /// Whether alpha channel is always enabled (cannot be disabled)
+    var alwaysHasAlpha: Bool {
+        switch self {
+        case .proRes4444:
+            return true
+        case .hevc, .h264, .proRes422:
+            return false
+        }
+    }
+
+    /// Whether alpha channel can be toggled by the user
+    var canToggleAlpha: Bool {
+        switch self {
+        case .hevc:
+            return true
+        case .h264, .proRes422, .proRes4444:
+            return false
+        }
+    }
 }
 
 /// Container format for output files
@@ -86,10 +106,15 @@ final class SettingsStore {
         }
         set {
             videoCodecRaw = newValue.rawValue
-            // Reset alpha channel setting if the new codec doesn't support it
-            if !newValue.supportsAlphaChannel {
+            // Set alpha channel based on codec capabilities
+            if newValue.alwaysHasAlpha {
+                // ProRes 4444 always has alpha
+                captureAlphaChannel = true
+            } else if !newValue.supportsAlphaChannel {
+                // H.264 and ProRes 422 never have alpha
                 captureAlphaChannel = false
             }
+            // HEVC can toggle alpha, so leave it as-is
         }
     }
 

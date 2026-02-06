@@ -51,25 +51,27 @@ struct MenuBarDivider: View {
 struct MenuBarToggle: View {
     let name: String
     @Binding var isOn: Bool
+    var isDisabled: Bool = false
     @State private var isHovered = false
 
     var body: some View {
         HStack {
             Text(name)
                 .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(.primary)
+                .foregroundStyle(isDisabled ? .secondary : .primary)
             Spacer()
             Toggle("", isOn: $isOn)
                 .toggleStyle(.switch)
                 .tint(.blue)
                 .scaleEffect(0.8)
+                .disabled(isDisabled)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
         .contentShape(.rect)
         .background(
             RoundedRectangle(cornerRadius: 4)
-                .fill(isHovered ? .gray.opacity(0.1) : .clear)
+                .fill(isHovered && !isDisabled ? .gray.opacity(0.1) : .clear)
                 .padding(.horizontal, 4)
         )
         .onHover { hovering in
@@ -421,10 +423,12 @@ struct VideoSettingsSection: View {
                 options: ContainerFormat.allCases.map { ($0, $0.rawValue.uppercased()) }
             )
 
-            // Alpha Channel Toggle (only for supported codecs)
-            if settings.videoCodec.supportsAlphaChannel {
-                MenuBarToggle(name: "Capture Alpha Channel", isOn: $settings.captureAlphaChannel)
-            }
+            // Alpha Channel Toggle (always visible, but disabled for non-toggleable codecs)
+            MenuBarToggle(
+                name: "Capture Alpha Channel",
+                isOn: $settings.captureAlphaChannel,
+                isDisabled: !settings.videoCodec.canToggleAlpha
+            )
         }
     }
 }

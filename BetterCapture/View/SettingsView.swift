@@ -34,6 +34,17 @@ struct SettingsView: View {
 struct VideoSettingsView: View {
     @Bindable var settings: SettingsStore
 
+    private var alphaChannelHelpText: String {
+        switch settings.videoCodec {
+        case .proRes4444:
+            return "ProRes 4444 always includes alpha channel support"
+        case .hevc:
+            return "Enable transparency support for HEVC"
+        case .h264, .proRes422:
+            return "Alpha channel not supported by this codec"
+        }
+    }
+
     var body: some View {
         Form {
             Section("Recording") {
@@ -56,11 +67,10 @@ struct VideoSettingsView: View {
                 }
             }
 
-            if settings.videoCodec.supportsAlphaChannel {
-                Section("Advanced") {
-                    Toggle("Capture Alpha Channel", isOn: $settings.captureAlphaChannel)
-                        .help("Enable transparency support (requires HEVC or ProRes 4444)")
-                }
+            Section("Advanced") {
+                Toggle("Capture Alpha Channel", isOn: $settings.captureAlphaChannel)
+                    .disabled(!settings.videoCodec.canToggleAlpha)
+                    .help(alphaChannelHelpText)
             }
         }
         .formStyle(.grouped)
