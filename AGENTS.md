@@ -68,6 +68,10 @@ If SwiftData is configured to use CloudKit:
 - Add code comments and documentation comments as needed.
 - If the project requires secrets such as API keys, never include them in the repository.
 
+## Git workflow
+
+- When working on a GitHub issue, use `gh issue develop <issue-number> --checkout` to create and checkout a branch with consistent naming.
+
 ## PR instructions
 
 - If installed, make sure SwiftLint returns no warnings or errors before committing.

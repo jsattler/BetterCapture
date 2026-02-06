@@ -5,6 +5,7 @@
 //  Created by Joshua Sattler on 29.01.26.
 //
 
+import AppKit
 import Foundation
 
 /// Video codec options for recording
@@ -250,11 +251,106 @@ final class SettingsStore {
 
     // MARK: - Output Settings
 
+    /// The default output directory (Documents/BetterCapture)
+    var defaultOutputDirectory: URL {
+        URL.documentsDirectory.appending(path: "BetterCapture")
+    }
+
+    /// Security-scoped bookmark data for the custom output directory
+    private var customOutputDirectoryBookmark: Data? {
+        get {
+            access(keyPath: \.customOutputDirectoryBookmark)
+            return UserDefaults.standard.data(forKey: "customOutputDirectoryBookmark")
+        }
+        set {
+            withMutation(keyPath: \.customOutputDirectoryBookmark) {
+                UserDefaults.standard.set(newValue, forKey: "customOutputDirectoryBookmark")
+            }
+        }
+    }
+
+    /// Whether a custom output directory has been set
+    var hasCustomOutputDirectory: Bool {
+        customOutputDirectoryBookmark != nil
+    }
+
+    /// The current output directory, using custom path if set
     var outputDirectory: URL {
-        // Use Documents directory within the app's sandbox container
-        // This is always accessible without additional entitlements
-        // Path will be: ~/Library/Containers/[bundle-id]/Data/Documents/BetterCapture/
-        return URL.documentsDirectory.appending(path: "BetterCapture")
+        guard let bookmarkData = customOutputDirectoryBookmark else {
+            return defaultOutputDirectory
+        }
+
+        do {
+            var isStale = false
+            let url = try URL(
+                resolvingBookmarkData: bookmarkData,
+                options: .withSecurityScope,
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale
+            )
+
+            if isStale {
+                // Bookmark is stale, try to recreate it
+                if url.startAccessingSecurityScopedResource() {
+                    defer { url.stopAccessingSecurityScopedResource() }
+                    if let newBookmark = try? url.bookmarkData(
+                        options: .withSecurityScope,
+                        includingResourceValuesForKeys: nil,
+                        relativeTo: nil
+                    ) {
+                        customOutputDirectoryBookmark = newBookmark
+                    }
+                }
+            }
+
+            return url
+        } catch {
+            // If bookmark resolution fails, fall back to default
+            return defaultOutputDirectory
+        }
+    }
+
+    /// Sets a custom output directory from a user-selected URL
+    /// - Parameter url: The URL selected by the user via NSOpenPanel
+    func setCustomOutputDirectory(_ url: URL) {
+        guard url.startAccessingSecurityScopedResource() else {
+            return
+        }
+        defer { url.stopAccessingSecurityScopedResource() }
+
+        do {
+            let bookmarkData = try url.bookmarkData(
+                options: .withSecurityScope,
+                includingResourceValuesForKeys: nil,
+                relativeTo: nil
+            )
+            customOutputDirectoryBookmark = bookmarkData
+        } catch {
+            // Failed to create bookmark, ignore
+        }
+    }
+
+    /// Resets to the default output directory
+    func resetOutputDirectory() {
+        customOutputDirectoryBookmark = nil
+    }
+
+    /// Starts accessing the security-scoped output directory resource
+    /// Call this before writing files to a custom output directory
+    /// - Returns: Whether access was successfully started (always true for default directory)
+    func startAccessingOutputDirectory() -> Bool {
+        guard customOutputDirectoryBookmark != nil else {
+            return true // Default directory doesn't need security scope
+        }
+        return outputDirectory.startAccessingSecurityScopedResource()
+    }
+
+    /// Stops accessing the security-scoped output directory resource
+    func stopAccessingOutputDirectory() {
+        guard customOutputDirectoryBookmark != nil else {
+            return // Default directory doesn't need security scope
+        }
+        outputDirectory.stopAccessingSecurityScopedResource()
     }
 
     // MARK: - Private Storage
