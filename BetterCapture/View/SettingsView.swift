@@ -5,6 +5,7 @@
 //  Created by Joshua Sattler on 29.01.26.
 //
 
+import AppKit
 import SwiftUI
 
 /// The settings window for BetterCapture
@@ -13,6 +14,10 @@ struct SettingsView: View {
 
     var body: some View {
         TabView {
+            Tab("General", systemImage: "gearshape") {
+                GeneralSettingsView(settings: settings)
+            }
+
             Tab("Video", systemImage: "video") {
                 VideoSettingsView(settings: settings)
             }
@@ -113,6 +118,69 @@ struct AudioSettingsView: View {
     }
 }
 
+// MARK: - General Settings
+
+struct GeneralSettingsView: View {
+    @Bindable var settings: SettingsStore
+
+    /// Formats the output directory path for display
+    private var displayPath: String {
+        let path = settings.outputDirectory.path(percentEncoded: false)
+        // Replace home directory with ~ for cleaner display
+        let home = FileManager.default.homeDirectoryForCurrentUser.path(percentEncoded: false)
+        if path.hasPrefix(home) {
+            return "~" + path.dropFirst(home.count)
+        }
+        return path
+    }
+
+    var body: some View {
+        Form {
+            Section("Output Location") {
+                LabeledContent {
+                    HStack {
+                        Button("Change...") {
+                            selectOutputDirectory()
+                        }
+
+                        if settings.hasCustomOutputDirectory {
+                            Button("Reset", role: .destructive) {
+                                settings.resetOutputDirectory()
+                            }
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "folder")
+                        Text(displayPath)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .padding()
+    }
+
+    /// Opens an NSOpenPanel to select a custom output directory
+    private func selectOutputDirectory() {
+        let panel = NSOpenPanel()
+        panel.title = "Select Output Directory"
+        panel.message = "Choose where recordings will be saved"
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = settings.outputDirectory
+
+        if panel.runModal() == .OK, let url = panel.url {
+            settings.setCustomOutputDirectory(url)
+        }
+    }
+}
+
 // MARK: - Content Filter Settings
 
 struct ContentFilterSettingsView: View {
@@ -130,16 +198,6 @@ struct ContentFilterSettingsView: View {
             Section("Window Capture") {
                 Toggle("Show Window Shadows", isOn: $settings.showWindowShadows)
                     .help("Include window shadows when capturing individual windows")
-            }
-
-            Section {
-                HStack {
-                    Image(systemName: "folder")
-                    Text("Output: ~/Movies/BetterCapture/")
-                        .foregroundStyle(.secondary)
-                }
-            } header: {
-                Text("Output Location")
             }
         }
         .formStyle(.grouped)
