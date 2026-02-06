@@ -71,6 +71,17 @@ struct MenuBarView: View {
             MenuBarDivider()
 
             // Bottom Actions
+            MenuBarActionButton(title: "Open Output Folder", systemImage: "folder") {
+                let settings = viewModel.settings
+                let didStart = settings.startAccessingOutputDirectory()
+                defer {
+                    if didStart {
+                        settings.stopAccessingOutputDirectory()
+                    }
+                }
+                NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: settings.outputDirectory.path)
+            }
+
             MenuBarActionButton(title: "Settings...", systemImage: "gear") {
                 openSettings()
             }

@@ -71,6 +71,11 @@ If SwiftData is configured to use CloudKit:
 ## Git workflow
 
 - When working on a GitHub issue, use `gh issue develop <issue-number> --checkout` to create and checkout a branch with consistent naming.
+- Use conventional commit format for all commits: `type(scope): subject`
+  - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+  - Example: `feat(menu-bar): add open output folder button`
+  - Keep subject line under 50 characters when possible
+  - Use present tense ("add" not "added")
 
 ## PR instructions
 
