@@ -193,6 +193,7 @@ struct ContentFilterSettingsView: View {
                 Toggle("Show Wallpaper", isOn: $settings.showWallpaper)
                 Toggle("Show Menu Bar", isOn: $settings.showMenuBar)
                 Toggle("Show Dock", isOn: $settings.showDock)
+                Toggle("Show BetterCapture", isOn: $settings.showBetterCapture)
             }
 
             Section("Window Capture") {

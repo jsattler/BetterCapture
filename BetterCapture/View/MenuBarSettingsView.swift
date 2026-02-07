@@ -400,6 +400,7 @@ struct VideoSettingsSection: View {
                 MenuBarToggle(name: "Show Menu Bar", isOn: $settings.showMenuBar)
                 MenuBarToggle(name: "Show Dock", isOn: $settings.showDock)
                 MenuBarToggle(name: "Show Window Shadows", isOn: $settings.showWindowShadows)
+                MenuBarToggle(name: "Show BetterCapture", isOn: $settings.showBetterCapture)
             }
 
             // Frame Rate Picker

@@ -67,8 +67,8 @@ final class ContentFilterService {
             return filter
         }
 
-        // If both wallpaper and dock are shown, no need to rebuild the filter
-        if settings.showWallpaper && settings.showDock {
+        // If both wallpaper and dock are shown and BetterCapture is shown, no need to rebuild the filter
+        if settings.showWallpaper && settings.showDock && settings.showBetterCapture {
             logger.info("No exclusions needed, returning original filter")
             return filter
         }
@@ -94,6 +94,13 @@ final class ContentFilterService {
             if !settings.showWallpaper && windowTitle.contains("Backstop") {
                 excludedWindows.append(window)
                 logger.debug("Excluding backstop window: \(windowTitle)")
+                continue
+            }
+
+            // Exclude BetterCapture's own windows if showBetterCapture is false
+            if !settings.showBetterCapture && bundleID == Bundle.main.bundleIdentifier {
+                excludedWindows.append(window)
+                logger.debug("Excluding BetterCapture window: \(windowTitle)")
                 continue
             }
 

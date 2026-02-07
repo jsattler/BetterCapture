@@ -249,6 +249,18 @@ final class SettingsStore {
         }
     }
 
+    var showBetterCapture: Bool {
+        get {
+            access(keyPath: \.showBetterCapture)
+            return UserDefaults.standard.object(forKey: "showBetterCapture") as? Bool ?? false
+        }
+        set {
+            withMutation(keyPath: \.showBetterCapture) {
+                UserDefaults.standard.set(newValue, forKey: "showBetterCapture")
+            }
+        }
+    }
+
     // MARK: - Output Settings
 
     /// The default output directory (Documents/BetterCapture)
