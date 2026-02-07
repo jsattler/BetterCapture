@@ -32,6 +32,9 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6C0990B12F2BE0C100D48100 /* BetterCapture */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6C0990B12F2BE0C100D48101 /* Exceptions for "BetterCapture" folder in "BetterCapture" target */,
+			);
 			path = BetterCapture;
 			sourceTree = "<group>";
 		};
@@ -46,6 +49,16 @@
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6C0990B12F2BE0C100D48101 /* Exceptions for "BetterCapture" folder in "BetterCapture" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6C0990AE2F2BE0C100D48100 /* BetterCapture */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		6C0990AC2F2BE0C100D48100 /* Frameworks */ = {
