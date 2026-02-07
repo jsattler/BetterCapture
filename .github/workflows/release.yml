@@ -22,6 +22,7 @@ jobs:
   build:
     runs-on: macos-15
     timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch' || github.event.release.prerelease != true
 
     steps:
       - name: Checkout repository
@@ -81,6 +82,7 @@ jobs:
 
       - name: Build application
         run: |
+          set -o pipefail
           xcodebuild archive \
             -project "${{ env.APP_NAME }}.xcodeproj" \
             -scheme "${{ env.SCHEME }}" \
@@ -91,7 +93,7 @@ jobs:
             CODE_SIGN_IDENTITY="Developer ID Application" \
             CODE_SIGN_STYLE=Manual \
             OTHER_CODE_SIGN_FLAGS="--timestamp --options=runtime" \
-            | xcbeautify --renderer github-actions || true
+            | xcbeautify --renderer github-actions
 
       - name: Export application
         run: |
