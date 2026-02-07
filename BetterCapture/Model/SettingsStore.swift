@@ -290,9 +290,9 @@ final class SettingsStore {
 
     // MARK: - Output Settings
 
-    /// The default output directory (Documents/BetterCapture)
+    /// The default output directory (Movies/BetterCapture)
     var defaultOutputDirectory: URL {
-        URL.documentsDirectory.appending(path: "BetterCapture")
+        URL.homeDirectory.appending(path: "Movies/BetterCapture")
     }
 
     /// Security-scoped bookmark data for the custom output directory
