@@ -1,0 +1,6 @@
+# BetterCapture - robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://jsattler.github.io/BetterCapture/sitemap-index.xml

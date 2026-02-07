@@ -1,0 +1,21 @@
+{
+  "name": "BetterCapture",
+  "short_name": "BetterCapture",
+  "description": "A native, open-source screen recorder for macOS. Built with SwiftUI, free forever, and privacy-focused.",
+  "start_url": "/BetterCapture/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/BetterCapture/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/BetterCapture/bettercapture-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

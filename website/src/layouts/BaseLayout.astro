@@ -1,0 +1,84 @@
+---
+import '../styles/global.css';
+import Navbar from '../components/Navbar.svelte';
+import Footer from '../components/Footer.svelte';
+
+interface Props {
+	title: string;
+	description: string;
+	canonicalUrl?: string;
+	ogImage?: string;
+	lang?: string;
+	robots?: string;
+	structuredData?: object[];
+}
+
+const {
+	title,
+	description,
+	canonicalUrl,
+	ogImage = 'https://jsattler.github.io/BetterCapture/bettercapture-og.png',
+	lang = 'en',
+	robots = 'index, follow',
+	structuredData = []
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang={lang}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+
+		<!-- Primary Meta Tags -->
+		<title>{title}</title>
+		<meta name="title" content={title} />
+		<meta name="description" content={description} />
+		<meta name="robots" content={robots} />
+
+		<!-- Canonical URL -->
+		{canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+
+		<!-- Open Graph / Facebook -->
+		<meta property="og:type" content="website" />
+		{canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={ogImage} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:site_name" content="BetterCapture" />
+
+		<!-- Twitter -->
+		<meta property="twitter:card" content="summary_large_image" />
+		{canonicalUrl && <meta property="twitter:url" content={canonicalUrl} />}
+		<meta property="twitter:title" content={title} />
+		<meta property="twitter:description" content={description} />
+		<meta property="twitter:image" content={ogImage} />
+
+		<!-- Favicon -->
+		<link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+		<link rel="manifest" href={`${import.meta.env.BASE_URL}site.webmanifest`} />
+
+		<!-- Theme Color -->
+		<meta name="theme-color" content="#ffffff" />
+		<meta name="color-scheme" content="light" />
+
+		<!-- Performance Hints -->
+		<link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
+		<!-- Structured Data (JSON-LD) -->
+		{structuredData.map((data) => (
+			<script type="application/ld+json" set:html={JSON.stringify(data)} />
+		))}
+
+		<!-- Allow pages to inject additional head content -->
+		<slot name="head" />
+	</head>
+	<body class="bg-white text-gray-900 font-sans antialiased">
+		<Navbar client:load />
+		<slot />
+		<Footer client:load />
+	</body>
+</html>

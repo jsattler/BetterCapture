@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.svelte';
+import FeaturesSection from '../components/FeaturesSection.svelte';
+import CTASection from '../components/CTASection.svelte';
+
+const structuredData = [
+	{
+		"@context": "https://schema.org",
+		"@type": "SoftwareApplication",
+		"name": "BetterCapture",
+		"description": "A native, open-source screen recorder for macOS. Built with SwiftUI, free forever, and privacy-focused. Record with ProRes 4444, HEVC, or H.264 codecs with professional features.",
+		"applicationCategory": "MultimediaApplication",
+		"operatingSystem": "macOS",
+		"url": "https://jsattler.github.io/BetterCapture/",
+		"softwareVersion": "1.0",
+		"offers": {
+			"@type": "Offer",
+			"price": "0",
+			"priceCurrency": "USD",
+			"availability": "https://schema.org/InStock",
+			"description": "Free and open source"
+		},
+		"author": {
+			"@type": "Person",
+			"name": "Joshua Sattler"
+		},
+		"creator": {
+			"@type": "Person",
+			"name": "Joshua Sattler"
+		},
+		"license": "https://opensource.org/licenses/MIT",
+		"aggregateRating": {
+			"@type": "AggregateRating",
+			"ratingValue": "5",
+			"reviewCount": "1"
+		},
+		"screenshot": "https://jsattler.github.io/BetterCapture/screenshot-basic.png",
+		"featureList": [
+			"ProRes 4444, HEVC, and H.264 codec support",
+			"Alpha channel support for transparency",
+			"Record system audio and microphone simultaneously",
+			"Content filtering to exclude specific windows",
+			"Native macOS integration with menu bar access",
+			"Built with SwiftUI and ScreenCaptureKit",
+			"No tracking, no analytics, 100% privacy-focused",
+			"Open source with MIT license"
+		],
+		"keywords": "screen recorder, macOS, SwiftUI, open source, free, privacy, screen capture, video recording, native app, ProRes, HEVC, H.264"
+	},
+	{
+		"@context": "https://schema.org",
+		"@type": "WebSite",
+		"name": "BetterCapture",
+		"url": "https://jsattler.github.io/BetterCapture/",
+		"description": "Native screen recorder for macOS - Simple, Powerful, Private",
+		"publisher": {
+			"@type": "Person",
+			"name": "Joshua Sattler"
+		}
+	}
+];
+---
+
+<BaseLayout
+	title="BetterCapture - Native Screen Recorder for macOS | Free & Open Source"
+	description="Professional screen recorder for macOS built with SwiftUI. Record with ProRes 4444, HEVC, or H.264. Completely free, open source, and privacy-focused. No tracking, no subscriptions, no account required."
+	canonicalUrl="https://jsattler.github.io/BetterCapture/"
+	ogImage="https://jsattler.github.io/BetterCapture/bettercapture-og.png"
+	structuredData={structuredData}
+>
+	<Fragment slot="head">
+		<meta name="keywords" content="screen recorder, macOS, SwiftUI, open source, free, privacy, screen capture, video recording, native app, ProRes 4444, HEVC, H.264, ScreenCaptureKit, menu bar app, alpha channel, transparent recording, system audio, microphone recording, content filtering" />
+		<meta name="author" content="Joshua Sattler" />
+		<meta name="application-name" content="BetterCapture" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+		<meta name="apple-mobile-web-app-title" content="BetterCapture" />
+	</Fragment>
+
+	<main>
+		<Hero client:load />
+		<FeaturesSection client:load />
+		<CTASection client:load />
+	</main>
+</BaseLayout>

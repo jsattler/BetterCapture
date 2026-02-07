@@ -1,0 +1,26 @@
+{
+  "name": "landing",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/node": "^9.5.0",
+    "@astrojs/sitemap": "^3.6.0",
+    "@astrojs/svelte": "^7.2.0",
+    "@tailwindcss/vite": "^4.1.14",
+    "airtable": "^0.12.2",
+    "astro": "^5.14.4",
+    "svelte": "^5.39.12",
+    "typescript": "^5.9.3",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@astrojs/tailwind": "^6.0.2",
+    "tailwindcss": "^4.1.14"
+  }
+}
