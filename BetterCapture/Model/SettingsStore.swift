@@ -46,6 +46,16 @@ enum VideoCodec: String, CaseIterable, Identifiable {
             return false
         }
     }
+
+    /// Whether this codec supports HDR (10-bit) recording
+    var supportsHDR: Bool {
+        switch self {
+        case .proRes422, .proRes4444:
+            return true
+        case .h264, .hevc:
+            return false
+        }
+    }
 }
 
 /// Container format for output files
@@ -116,6 +126,11 @@ final class SettingsStore {
                 captureAlphaChannel = false
             }
             // HEVC can toggle alpha, so leave it as-is
+
+            // Disable HDR for codecs that don't support it
+            if !newValue.supportsHDR {
+                captureHDR = false
+            }
         }
     }
 
@@ -136,6 +151,18 @@ final class SettingsStore {
         set {
             withMutation(keyPath: \.captureAlphaChannel) {
                 UserDefaults.standard.set(newValue, forKey: "captureAlphaChannel")
+            }
+        }
+    }
+
+    var captureHDR: Bool {
+        get {
+            access(keyPath: \.captureHDR)
+            return UserDefaults.standard.bool(forKey: "captureHDR")
+        }
+        set {
+            withMutation(keyPath: \.captureHDR) {
+                UserDefaults.standard.set(newValue, forKey: "captureHDR")
             }
         }
     }

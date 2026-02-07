@@ -210,8 +210,16 @@ final class CaptureEngine: NSObject {
             config.microphoneCaptureDeviceID = microphoneID
         }
 
-        // Pixel format - use BGRA for compatibility with AVAssetWriter
-        config.pixelFormat = kCVPixelFormatType_32BGRA
+        // Configure pixel format and dynamic range based on HDR setting
+        if settings.captureHDR && settings.videoCodec.supportsHDR {
+            // HDR: Use 10-bit YCbCr format with HDR dynamic range
+            config.pixelFormat = kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
+            config.captureDynamicRange = .hdrLocalDisplay
+        } else {
+            // SDR: Use 8-bit BGRA format
+            config.pixelFormat = kCVPixelFormatType_32BGRA
+            config.captureDynamicRange = .SDR
+        }
 
         return config
     }

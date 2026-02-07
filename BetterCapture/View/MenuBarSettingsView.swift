@@ -430,6 +430,13 @@ struct VideoSettingsSection: View {
                 isOn: $settings.captureAlphaChannel,
                 isDisabled: !settings.videoCodec.canToggleAlpha
             )
+
+            // HDR Recording Toggle (disabled for codecs that don't support HDR)
+            MenuBarToggle(
+                name: "HDR Recording",
+                isOn: $settings.captureHDR,
+                isDisabled: !settings.videoCodec.supportsHDR
+            )
         }
     }
 }

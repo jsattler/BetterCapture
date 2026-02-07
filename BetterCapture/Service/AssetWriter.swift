@@ -68,8 +68,13 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             assetWriter.add(videoInput)
 
             // Create pixel buffer adaptor for appending raw pixel buffers from ScreenCaptureKit
+            // Use HDR 10-bit format when HDR is enabled with a compatible codec
+            let pixelFormat: OSType = (settings.captureHDR && settings.videoCodec.supportsHDR)
+                ? kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
+                : kCVPixelFormatType_32BGRA
+
             let sourcePixelBufferAttributes: [String: Any] = [
-                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+                kCVPixelBufferPixelFormatTypeKey as String: pixelFormat,
                 kCVPixelBufferWidthKey as String: Int(videoSize.width),
                 kCVPixelBufferHeightKey as String: Int(videoSize.height)
             ]
@@ -345,6 +350,15 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
 
         case .proRes4444:
             videoSettings[AVVideoCodecKey] = AVVideoCodecType.proRes4444
+        }
+
+        // Add HDR color space settings for ProRes codecs with HDR enabled
+        if settings.captureHDR && settings.videoCodec.supportsHDR {
+            videoSettings[AVVideoColorPropertiesKey] = [
+                AVVideoColorPrimariesKey: AVVideoColorPrimaries_ITU_R_2020,
+                AVVideoTransferFunctionKey: AVVideoTransferFunction_ITU_R_2100_HLG,
+                AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_2020
+            ]
         }
 
         return videoSettings

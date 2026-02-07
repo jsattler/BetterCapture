@@ -50,6 +50,14 @@ struct VideoSettingsView: View {
         }
     }
 
+    private var hdrHelpText: String {
+        if settings.videoCodec.supportsHDR {
+            return "Enable 10-bit HDR capture for high dynamic range content"
+        } else {
+            return "HDR is only supported with ProRes 422 and ProRes 4444 codecs"
+        }
+    }
+
     var body: some View {
         Form {
             Section("Recording") {
@@ -76,6 +84,10 @@ struct VideoSettingsView: View {
                 Toggle("Capture Alpha Channel", isOn: $settings.captureAlphaChannel)
                     .disabled(!settings.videoCodec.canToggleAlpha)
                     .help(alphaChannelHelpText)
+
+                Toggle("HDR Recording", isOn: $settings.captureHDR)
+                    .disabled(!settings.videoCodec.supportsHDR)
+                    .help(hdrHelpText)
             }
         }
         .formStyle(.grouped)
