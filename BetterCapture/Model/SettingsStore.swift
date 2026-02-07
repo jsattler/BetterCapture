@@ -66,6 +66,41 @@ enum ContainerFormat: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     var fileExtension: String { rawValue }
+
+    /// Video codecs supported by this container format
+    var supportedVideoCodecs: [VideoCodec] {
+        switch self {
+        case .mov:
+            // MOV (QuickTime) supports all codecs including ProRes and HEVC with alpha
+            return VideoCodec.allCases
+        case .mp4:
+            // MP4 (MPEG-4) only supports H.264 and HEVC (without alpha)
+            return [.h264, .hevc]
+        }
+    }
+
+    /// Whether this container supports alpha channel video
+    var supportsAlphaChannel: Bool {
+        switch self {
+        case .mov:
+            return true
+        case .mp4:
+            // MP4 does not support alpha channel (HEVC with alpha or ProRes 4444)
+            return false
+        }
+    }
+
+    /// Audio codecs supported by this container format
+    var supportedAudioCodecs: [AudioCodec] {
+        switch self {
+        case .mov:
+            // MOV supports all audio codecs
+            return AudioCodec.allCases
+        case .mp4:
+            // MP4 only supports AAC (not raw PCM)
+            return [.aac]
+        }
+    }
 }
 
 /// Audio codec options
@@ -116,16 +151,25 @@ final class SettingsStore {
             VideoCodec(rawValue: videoCodecRaw) ?? .hevc
         }
         set {
+            // Ensure the codec is compatible with the current container format
+            guard containerFormat.supportedVideoCodecs.contains(newValue) else {
+                // If codec is not compatible, switch to MOV container first
+                containerFormatRaw = ContainerFormat.mov.rawValue
+                videoCodecRaw = newValue.rawValue
+                return
+            }
+
             videoCodecRaw = newValue.rawValue
-            // Set alpha channel based on codec capabilities
+
+            // Set alpha channel based on codec and container capabilities
             if newValue.alwaysHasAlpha {
-                // ProRes 4444 always has alpha
+                // ProRes 4444 always has alpha, requires MOV container
                 captureAlphaChannel = true
-            } else if !newValue.supportsAlphaChannel {
-                // H.264 and ProRes 422 never have alpha
+            } else if !newValue.supportsAlphaChannel || !containerFormat.supportsAlphaChannel {
+                // H.264, ProRes 422 never have alpha, or container doesn't support it
                 captureAlphaChannel = false
             }
-            // HEVC can toggle alpha, so leave it as-is
+            // HEVC can toggle alpha (if container supports it), so leave it as-is
 
             // Disable HDR for codecs that don't support it
             if !newValue.supportsHDR {
@@ -140,17 +184,45 @@ final class SettingsStore {
         }
         set {
             containerFormatRaw = newValue.rawValue
+
+            // Ensure current video codec is compatible with new container
+            if !newValue.supportedVideoCodecs.contains(videoCodec) {
+                // Switch to a compatible codec (prefer HEVC for quality)
+                videoCodec = .hevc
+            }
+
+            // Disable alpha channel if container doesn't support it
+            if !newValue.supportsAlphaChannel {
+                captureAlphaChannel = false
+            }
+
+            // Ensure current audio codec is compatible with new container
+            if !newValue.supportedAudioCodecs.contains(audioCodec) {
+                audioCodec = .aac
+            }
         }
     }
 
     var captureAlphaChannel: Bool {
         get {
             access(keyPath: \.captureAlphaChannel)
+            // ProRes 4444 always has alpha regardless of stored value
+            if videoCodec.alwaysHasAlpha {
+                return true
+            }
+            // If codec or container doesn't support alpha, always return false
+            if !videoCodec.supportsAlphaChannel || !containerFormat.supportsAlphaChannel {
+                return false
+            }
             return UserDefaults.standard.bool(forKey: "captureAlphaChannel")
         }
         set {
+            // Only allow alpha channel if both codec and container support it
+            let canEnable = videoCodec.supportsAlphaChannel && containerFormat.supportsAlphaChannel
+            let finalValue = newValue && canEnable
+
             withMutation(keyPath: \.captureAlphaChannel) {
-                UserDefaults.standard.set(newValue, forKey: "captureAlphaChannel")
+                UserDefaults.standard.set(finalValue, forKey: "captureAlphaChannel")
             }
         }
     }
@@ -198,6 +270,14 @@ final class SettingsStore {
             AudioCodec(rawValue: audioCodecRaw) ?? .aac
         }
         set {
+            // Ensure the audio codec is compatible with the current container format
+            guard containerFormat.supportedAudioCodecs.contains(newValue) else {
+                // If codec is not compatible, switch to MOV container first
+                containerFormatRaw = ContainerFormat.mov.rawValue
+                audioCodecRaw = newValue.rawValue
+                return
+            }
+
             audioCodecRaw = newValue.rawValue
         }
     }

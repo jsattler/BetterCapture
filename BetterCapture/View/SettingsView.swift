@@ -69,7 +69,14 @@ struct VideoSettingsView: View {
 
                 Picker("Codec", selection: $settings.videoCodec) {
                     ForEach(VideoCodec.allCases) { codec in
-                        Text(codec.rawValue).tag(codec)
+                        let isSupported = settings.containerFormat.supportedVideoCodecs.contains(codec)
+                        if isSupported {
+                            Text(codec.rawValue).tag(codec)
+                        } else {
+                            Text("\(codec.rawValue) (not supported for \(settings.containerFormat.rawValue.uppercased()))")
+                                .foregroundStyle(.secondary)
+                                .tag(codec)
+                        }
                     }
                 }
 
@@ -82,7 +89,7 @@ struct VideoSettingsView: View {
 
             Section("Advanced") {
                 Toggle("Capture Alpha Channel", isOn: $settings.captureAlphaChannel)
-                    .disabled(!settings.videoCodec.canToggleAlpha)
+                    .disabled(!settings.videoCodec.canToggleAlpha || !settings.containerFormat.supportsAlphaChannel)
                     .help(alphaChannelHelpText)
 
                 Toggle("HDR Recording", isOn: $settings.captureHDR)
@@ -113,10 +120,17 @@ struct AudioSettingsView: View {
             Section("Format") {
                 Picker("Codec", selection: $settings.audioCodec) {
                     ForEach(AudioCodec.allCases) { codec in
-                        Text(codec.rawValue).tag(codec)
+                        let isSupported = settings.containerFormat.supportedAudioCodecs.contains(codec)
+                        if isSupported {
+                            Text(codec.rawValue).tag(codec)
+                        } else {
+                            Text("\(codec.rawValue) (not supported for \(settings.containerFormat.rawValue.uppercased()))")
+                                .foregroundStyle(.secondary)
+                                .tag(codec)
+                        }
                     }
                 }
-                .help("AAC is compressed, PCM is uncompressed lossless")
+                .help("AAC is compressed, PCM is uncompressed lossless (MOV only)")
             }
 
             Section {

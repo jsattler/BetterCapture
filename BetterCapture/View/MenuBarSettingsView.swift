@@ -86,9 +86,31 @@ struct MenuBarToggle: View {
 struct MenuBarExpandablePicker<SelectionValue: Hashable & Equatable>: View {
     let name: String
     @Binding var selection: SelectionValue
-    let options: [(value: SelectionValue, label: String)]
+    let options: [(value: SelectionValue, label: String, isDisabled: Bool, disabledMessage: String?)]
     @State private var isExpanded = false
     @State private var isHovered = false
+
+    /// Convenience initializer for simple options without disabled state
+    init(
+        name: String,
+        selection: Binding<SelectionValue>,
+        options: [(value: SelectionValue, label: String)]
+    ) {
+        self.name = name
+        self._selection = selection
+        self.options = options.map { ($0.value, $0.label, false, nil) }
+    }
+
+    /// Full initializer with disabled state support
+    init(
+        name: String,
+        selection: Binding<SelectionValue>,
+        optionsWithState: [(value: SelectionValue, label: String, isDisabled: Bool, disabledMessage: String?)]
+    ) {
+        self.name = name
+        self._selection = selection
+        self.options = optionsWithState
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -131,7 +153,9 @@ struct MenuBarExpandablePicker<SelectionValue: Hashable & Equatable>: View {
                     ForEach(options, id: \.value) { option in
                         PickerOptionRow(
                             label: option.label,
-                            isSelected: selection == option.value
+                            isSelected: selection == option.value,
+                            isDisabled: option.isDisabled,
+                            disabledMessage: option.disabledMessage
                         ) {
                             selection = option.value
                             withAnimation(.easeInOut(duration: 0.2)) {
@@ -157,15 +181,24 @@ struct MenuBarExpandablePicker<SelectionValue: Hashable & Equatable>: View {
 struct PickerOptionRow: View {
     let label: String
     let isSelected: Bool
+    var isDisabled: Bool = false
+    var disabledMessage: String? = nil
     let onSelect: () -> Void
     @State private var isHovered = false
 
     var body: some View {
         Button(action: onSelect) {
             HStack {
-                Text(label)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.primary)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(label)
+                        .font(.system(size: 13))
+                        .foregroundStyle(isDisabled ? .tertiary : .primary)
+                    if isDisabled, let message = disabledMessage {
+                        Text(message)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
                 Spacer()
                 if isSelected {
                     Image(systemName: "checkmark")
@@ -178,9 +211,10 @@ struct PickerOptionRow: View {
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
+        .disabled(isDisabled)
         .background(
             RoundedRectangle(cornerRadius: 4)
-                .fill(isHovered ? .gray.opacity(0.1) : .clear)
+                .fill(isHovered && !isDisabled ? .gray.opacity(0.1) : .clear)
                 .padding(.horizontal, 4)
         )
         .onHover { hovering in
@@ -410,11 +444,19 @@ struct VideoSettingsSection: View {
                 options: FrameRate.allCases.map { ($0, $0.displayName) }
             )
 
-            // Video Codec Picker
+            // Video Codec Picker (shows all codecs, disables incompatible ones)
             MenuBarExpandablePicker(
                 name: "Codec",
                 selection: $settings.videoCodec,
-                options: VideoCodec.allCases.map { ($0, $0.rawValue) }
+                optionsWithState: VideoCodec.allCases.map { codec in
+                    let isSupported = settings.containerFormat.supportedVideoCodecs.contains(codec)
+                    return (
+                        value: codec,
+                        label: codec.rawValue,
+                        isDisabled: !isSupported,
+                        disabledMessage: isSupported ? nil : "Not supported for \(settings.containerFormat.rawValue.uppercased())"
+                    )
+                }
             )
 
             // Container Format Picker
@@ -424,11 +466,11 @@ struct VideoSettingsSection: View {
                 options: ContainerFormat.allCases.map { ($0, $0.rawValue.uppercased()) }
             )
 
-            // Alpha Channel Toggle (always visible, but disabled for non-toggleable codecs)
+            // Alpha Channel Toggle (disabled if codec doesn't support or container doesn't support)
             MenuBarToggle(
                 name: "Capture Alpha Channel",
                 isOn: $settings.captureAlphaChannel,
-                isDisabled: !settings.videoCodec.canToggleAlpha
+                isDisabled: !settings.videoCodec.canToggleAlpha || !settings.containerFormat.supportsAlphaChannel
             )
 
             // HDR Recording Toggle (disabled for codecs that don't support HDR)
@@ -469,11 +511,19 @@ struct AudioSettingsSection: View {
                 )
             }
 
-            // Audio Codec Picker
+            // Audio Codec Picker (shows all codecs, disables incompatible ones)
             MenuBarExpandablePicker(
                 name: "Audio Codec",
                 selection: $settings.audioCodec,
-                options: AudioCodec.allCases.map { ($0, $0.rawValue) }
+                optionsWithState: AudioCodec.allCases.map { codec in
+                    let isSupported = settings.containerFormat.supportedAudioCodecs.contains(codec)
+                    return (
+                        value: codec,
+                        label: codec.rawValue,
+                        isDisabled: !isSupported,
+                        disabledMessage: isSupported ? nil : "Not supported for \(settings.containerFormat.rawValue.uppercased())"
+                    )
+                }
             )
         }
     }
