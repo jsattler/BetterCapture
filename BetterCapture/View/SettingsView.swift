@@ -258,7 +258,7 @@ struct AboutSection: View {
             LabeledContent("Version", value: "\(appVersion) (\(buildNumber))")
 
             LabeledContent("Website") {
-                Link("bettercapture.app", destination: URL(string: "https://bettercapture.app")!)
+                Link("jsattler.github.io/BetterCapture", destination: URL(string: "https://jsattler.github.io/BetterCapture")!)
             }
 
             LabeledContent("Source Code") {
