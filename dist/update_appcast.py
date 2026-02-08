@@ -38,6 +38,9 @@ release_notes = os.environ.get("RELEASE_NOTES", "")
 release_url = os.environ.get("RELEASE_URL", "")
 repo_url = "https://github.com/jsattler/BetterCapture"
 
+# Define Sparkle namespace URI for element creation
+SPARKLE_NS = "http://www.andymatuschak.org/xml-namespaces/sparkle"
+
 # Read sign_update output (e.g. 'sparkle:edSignature="..." length="12345"')
 with open("sign_update.txt", "r") as f:
     attrs = {}
@@ -46,12 +49,17 @@ with open("sign_update.txt", "r") as f:
             continue
         key, value = pair.split("=", 1)
         value = value.strip().strip('"')
+        # Convert sparkle: prefix to full namespace URI for ElementTree
+        if key.startswith("sparkle:"):
+            key = f"{{{SPARKLE_NS}}}" + key[8:]
         attrs[key] = value
 
-# Register Sparkle namespace
-namespaces = {"sparkle": "http://www.andymatuschak.org/xml-namespaces/sparkle"}
-for prefix, uri in namespaces.items():
-    ET.register_namespace(prefix, uri)
+# Define namespace mapping for lookups
+namespaces = {"sparkle": SPARKLE_NS}
+
+# Register namespaces so ElementTree uses correct prefixes when writing new elements
+ET.register_namespace("sparkle", SPARKLE_NS)
+ET.register_namespace("dc", "http://purl.org/dc/elements/1.1/")
 
 # Parse existing appcast or create a fresh one if missing / malformed
 if os.path.exists("appcast.xml"):
@@ -199,19 +207,19 @@ elem.text = f"Version {version}"
 elem = ET.SubElement(item, "pubDate")
 elem.text = now.strftime(pubdate_format)
 
-elem = ET.SubElement(item, "sparkle:version")
+elem = ET.SubElement(item, f"{{{SPARKLE_NS}}}version")
 # Use a build number derived from version for CFBundleVersion comparison
 # Sparkle compares sparkle:version against CFBundleVersion
 elem.text = "1"  # Will be overridden in CI with the actual build number
 
-elem = ET.SubElement(item, "sparkle:shortVersionString")
+elem = ET.SubElement(item, f"{{{SPARKLE_NS}}}shortVersionString")
 elem.text = version
 
-elem = ET.SubElement(item, "sparkle:minimumSystemVersion")
+elem = ET.SubElement(item, f"{{{SPARKLE_NS}}}minimumSystemVersion")
 elem.text = "26.0"
 
 if release_url:
-    elem = ET.SubElement(item, "sparkle:fullReleaseNotesLink")
+    elem = ET.SubElement(item, f"{{{SPARKLE_NS}}}fullReleaseNotesLink")
     elem.text = release_url
 
 elem = ET.SubElement(item, "description")
@@ -222,6 +230,10 @@ elem.set("url", dmg_url)
 elem.set("type", "application/octet-stream")
 for key, value in attrs.items():
     elem.set(key, value)
+
+# Note: register_namespace() (called earlier) ensures xmlns declarations are
+# written to output when elements with those namespaces are present. We don't
+# need to set them explicitly as attributes.
 
 # Write output
 et.write("appcast_new.xml", xml_declaration=True, encoding="utf-8")
