@@ -368,6 +368,20 @@ final class SettingsStore {
         }
     }
 
+    // MARK: - Update Settings
+
+    var automaticallyCheckForUpdates: Bool {
+        get {
+            access(keyPath: \.automaticallyCheckForUpdates)
+            return UserDefaults.standard.object(forKey: "automaticallyCheckForUpdates") as? Bool ?? true
+        }
+        set {
+            withMutation(keyPath: \.automaticallyCheckForUpdates) {
+                UserDefaults.standard.set(newValue, forKey: "automaticallyCheckForUpdates")
+            }
+        }
+    }
+
     // MARK: - Output Settings
 
     /// The default output directory (Movies/BetterCapture)

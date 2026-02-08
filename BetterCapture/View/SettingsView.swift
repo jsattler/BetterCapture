@@ -25,12 +25,8 @@ struct SettingsView: View {
             Tab("Audio", systemImage: "waveform") {
                 AudioSettingsView(settings: settings)
             }
-
-            Tab("Content", systemImage: "rectangle.dashed") {
-                ContentFilterSettingsView(settings: settings)
-            }
         }
-        .frame(width: 450, height: 300)
+        .frame(width: 500, height: 420)
     }
 }
 
@@ -95,6 +91,19 @@ struct VideoSettingsView: View {
                 Toggle("HDR Recording", isOn: $settings.captureHDR)
                     .disabled(!settings.videoCodec.supportsHDR)
                     .help(hdrHelpText)
+            }
+
+            Section("Display Elements") {
+                Toggle("Show Cursor", isOn: $settings.showCursor)
+                Toggle("Show Wallpaper", isOn: $settings.showWallpaper)
+                Toggle("Show Menu Bar", isOn: $settings.showMenuBar)
+                Toggle("Show Dock", isOn: $settings.showDock)
+                Toggle("Show BetterCapture", isOn: $settings.showBetterCapture)
+            }
+
+            Section("Window Capture") {
+                Toggle("Show Window Shadows", isOn: $settings.showWindowShadows)
+                    .help("Include window shadows when capturing individual windows")
             }
         }
         .formStyle(.grouped)
@@ -185,6 +194,16 @@ struct GeneralSettingsView: View {
                     }
                 }
             }
+
+            Section("Software Updates") {
+                Toggle("Automatically check for updates", isOn: $settings.automaticallyCheckForUpdates)
+
+                LabeledContent("Updates") {
+                    Button("Check for Update") {}
+                }
+            }
+
+            AboutSection()
         }
         .formStyle(.grouped)
         .padding()
@@ -207,28 +226,29 @@ struct GeneralSettingsView: View {
     }
 }
 
-// MARK: - Content Filter Settings
+// MARK: - About Section
 
-struct ContentFilterSettingsView: View {
-    @Bindable var settings: SettingsStore
+struct AboutSection: View {
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+    }
+
+    private var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+    }
 
     var body: some View {
-        Form {
-            Section("Display Elements") {
-                Toggle("Show Cursor", isOn: $settings.showCursor)
-                Toggle("Show Wallpaper", isOn: $settings.showWallpaper)
-                Toggle("Show Menu Bar", isOn: $settings.showMenuBar)
-                Toggle("Show Dock", isOn: $settings.showDock)
-                Toggle("Show BetterCapture", isOn: $settings.showBetterCapture)
+        Section("About") {
+            LabeledContent("Version", value: "\(appVersion) (\(buildNumber))")
+
+            LabeledContent("Website") {
+                Link("bettercapture.app", destination: URL(string: "https://bettercapture.app")!)
             }
 
-            Section("Window Capture") {
-                Toggle("Show Window Shadows", isOn: $settings.showWindowShadows)
-                    .help("Include window shadows when capturing individual windows")
+            LabeledContent("Source Code") {
+                Link("github.com/jsattler/BetterCapture", destination: URL(string: "https://github.com/jsattler/BetterCapture")!)
             }
         }
-        .formStyle(.grouped)
-        .padding()
     }
 }
 
