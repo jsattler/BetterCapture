@@ -34,7 +34,7 @@
           <!-- Left column (3/5 width) - Frosted glass card -->
           <div class="md:col-span-2 lg:col-span-3">
             <div class="bg-white/20 backdrop-blur-xl rounded-2xl p-4 md:p-8 lg:p-12 2xl:p-24 text-center border border-white/30 shadow-2xl">
-              <h1 class="text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-7xl text-white mb-4 md:mb-6">The screen recorder for macOS you always wanted</h1>
+              <h1 class="text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-7xl text-white mb-4 md:mb-6">The macOS screen recorder for the rest of us</h1>
               <p class="text-sm md:text-base lg:text-lg 2xl:text-xl text-white/90 mb-4 md:mb-6 lg:mb-8 2xl:mb-10 max-w-xl mx-auto">
                 Forever free and open-source. A lightweight, and intuitive screen recorder with a native look and feel.
               </p>

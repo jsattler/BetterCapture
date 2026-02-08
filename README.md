@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-    The macOS screen recorder you deserve - always free and open source with a native look and feel 📺 
+    The macOS screen recorder for the rest of us - always free and open source with a native look and feel 📺 
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@
 ## Features
 
 - **Native macOS integration**: Built with SwiftUI and ScreenCaptureKit, lives in your menu bar
-- **Professional encoding**: ProRes 422/4444, HEVC (H.265), and H.264 codecs with alpha channel support
+- **Professional encoding**: ProRes 422/4444, HEVC (H.265), and H.264 codecs with support for alpha channel and HDR
 - **Flexible audio capture**: Record system audio and microphone simultaneously
 - **Content filtering**: Exclude specific content from recordings
 - **Privacy-focused**: No tracking, no analytics, all recordings stored locally
