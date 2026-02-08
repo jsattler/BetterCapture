@@ -9,71 +9,46 @@ BetterCapture follows the **MVVM (Model-View-ViewModel)** pattern. The applicati
 ### Component Relationship Diagram
 
 ```mermaid
-classDiagram
-    %% View Layer
-    class MenuBarView {
-        +UI Main Interface
-    }
-    class SettingsView {
-        +UI Configuration
-    }
+graph TD
+    subgraph UI
+        MBV[MenuBarView]
+        SV[SettingsView]
+    end
 
-    %% ViewModel Layer
-    class RecorderViewModel {
-        +RecordingState state
-        +startRecording()
-        +stopRecording()
-    }
+    subgraph Logic
+        VM[RecorderViewModel]
+        SS[SettingsStore]
+    end
 
-    %% Model/Data Layer
-    class SettingsStore {
-        +VideoCodec videoCodec
-        +ContainerFormat containerFormat
-        +Persists User Preferences
-    }
-
-    %% Service Layer
-    class CaptureEngine {
-        +SCStream stream
-        +SCContentSharingPicker picker
-        +Handles ScreenCaptureKit
-    }
-    class AssetWriter {
-        +AVAssetWriter writer
-        +Writes Media to Disk
-    }
-    class PreviewService {
-        +Generates Thumbnails
-        +Live Preview Stream
-    }
-    class ContentFilterService {
-        +Applies Window Exclusions
-        +Wallpapers/Dock/Self Hiding
-    }
-    class AudioDeviceService {
-        +Enumerates Microphones
-    }
+    subgraph Services
+        CE[CaptureEngine]
+        AW[AssetWriter]
+        PS[PreviewService]
+        ADS[AudioDeviceService]
+        CFS[ContentFilterService]
+    end
 
     %% Relationships
-    MenuBarView --> RecorderViewModel : Binds to
-    SettingsView --> SettingsStore : Binds to
-    RecorderViewModel --> SettingsStore : Reads/Writes
-    RecorderViewModel --> CaptureEngine : Controls
-    RecorderViewModel --> AssetWriter : Controls
-    RecorderViewModel --> PreviewService : Controls
-    RecorderViewModel --> AudioDeviceService : Uses
-    
-    CaptureEngine --> ContentFilterService : Uses
-    CaptureEngine ..> AssetWriter : Sends Samples (Delegate)
+    MBV --> VM
+    SV --> SS
+    VM --> SS
+    VM --> CE
+    VM --> AW
+    VM --> PS
+    VM --> ADS
+    CE --> CFS
+    CE -- Samples --> AW
 ```
 
 ### Key Components Description
 
-- **RecorderViewModel**: The heart of the application. It manages the application state (Idle, Recording), handles user intents from the UI, and orchestrates the recording lifecycle.
-- **SettingsStore**: Manages persistent user preferences (codecs, frame rates, paths) and handles logic for ensuring compatibility between selected codecs and containers.
-- **CaptureEngine**: A wrapper around Apple's `ScreenCaptureKit`. It manages the `SCStream`, handles the content picker, and receives raw audio/video sample buffers.
-- **AssetWriter**: Wraps `AVAssetWriter`. It receives `CMSampleBuffer`s from the `CaptureEngine` and writes them to the output file on disk. It handles format conversions and pixel buffer adaptation.
-- **ContentFilterService**: Helper service that modifies `SCContentFilter` objects to implement features like hiding the wallpaper, dock, or the application window itself from recordings.
+- **RecorderViewModel**: Orchestrates the recording lifecycle and manages application state.
+- **SettingsStore**: Persists user preferences and enforces codec/container compatibility logic.
+- **CaptureEngine**: Manages ScreenCaptureKit streams and content selection.
+- **AssetWriter**: Handles media encoding and disk I/O for captured samples.
+- **PreviewService**: Provides live and static thumbnails of selected content.
+- **ContentFilterService**: Implements window exclusions and system UI hiding.
+- **AudioDeviceService**: Discovers and monitors available audio input devices.
 
 ## Recording Data Flow
 
