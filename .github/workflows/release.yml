@@ -17,6 +17,7 @@ env:
   APP_NAME: BetterCapture
   SCHEME: BetterCapture
   XCODE_VERSION: "26.0"
+  SPARKLE_VERSION: "2.7.3"
 
 jobs:
   build:
@@ -33,6 +34,14 @@ jobs:
 
       - name: Show Xcode version
         run: xcodebuild -version
+
+      - name: Setup Sparkle
+        run: |
+          mkdir -p "$RUNNER_TEMP/sparkle"
+          cd "$RUNNER_TEMP/sparkle"
+          curl -L "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-for-Swift-Package-Manager.zip" -o sparkle.zip
+          unzip -q sparkle.zip
+          echo "$RUNNER_TEMP/sparkle/bin" >> $GITHUB_PATH
 
       - name: Import signing certificate
         env:
@@ -79,6 +88,12 @@ jobs:
           # Use full version for display if it has patch
           agvtool new-marketing-version "$MARKETING_VERSION"
           agvtool new-version -all 1
+
+      - name: Set Sparkle public key in Info.plist
+        env:
+          SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_EDDSA_KEY }}
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :SUPublicEDKey $SPARKLE_PUBLIC_KEY" "BetterCapture/Info.plist"
 
       - name: Build application
         run: |
@@ -170,6 +185,59 @@ jobs:
 
           echo "DMG_PATH=$DMG_PATH" >> $GITHUB_ENV
 
+      - name: Sign DMG with Sparkle EdDSA
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_EDDSA_KEY }}
+        run: |
+          echo "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_key"
+          sign_update "${{ env.DMG_PATH }}" -f "$RUNNER_TEMP/sparkle_key" > "$RUNNER_TEMP/sign_update.txt"
+          rm "$RUNNER_TEMP/sparkle_key"
+          echo "Sparkle signature:"
+          cat "$RUNNER_TEMP/sign_update.txt"
+
+      - name: Generate Sparkle appcast
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          TAG="${{ github.event.release.tag_name }}"
+          DMG_FILENAME="${{ env.APP_NAME }}-${VERSION}-arm64.dmg"
+          RELEASE_URL="${{ github.event.release.html_url }}"
+
+          # The DMG URL uses the release tag for a permanent link
+          if [ -n "$TAG" ]; then
+            DMG_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/${DMG_FILENAME}"
+          else
+            DMG_URL="https://github.com/${{ github.repository }}/releases/latest/download/${DMG_FILENAME}"
+          fi
+
+          # Fetch release notes body from the GitHub release
+          RELEASE_NOTES=""
+          if [ -n "$TAG" ]; then
+            RELEASE_NOTES=$(gh release view "$TAG" --json body --jq '.body' 2>/dev/null || echo "")
+          fi
+
+          # Try to download the appcast from the previous latest release
+          APPCAST_DIR="$RUNNER_TEMP/appcast"
+          mkdir -p "$APPCAST_DIR"
+          cp "$RUNNER_TEMP/sign_update.txt" "$APPCAST_DIR/sign_update.txt"
+
+          curl -fsSL \
+            "https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml" \
+            -o "$APPCAST_DIR/appcast.xml" 2>/dev/null \
+            || echo "No previous appcast found, will create a fresh one"
+
+          # Run the appcast generation script
+          cd "$APPCAST_DIR"
+          VERSION="$VERSION" \
+          DMG_URL="$DMG_URL" \
+          RELEASE_NOTES="$RELEASE_NOTES" \
+          RELEASE_URL="$RELEASE_URL" \
+            python3 "$GITHUB_WORKSPACE/dist/update_appcast.py"
+
+          # Move the generated appcast to a known location
+          mv appcast_new.xml "$RUNNER_TEMP/appcast.xml"
+
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v4
         with:
@@ -177,37 +245,22 @@ jobs:
           path: ${{ env.DMG_PATH }}
           if-no-files-found: error
 
-      - name: Upload to release
+      - name: Upload appcast artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: appcast
+          path: ${{ runner.temp }}/appcast.xml
+          if-no-files-found: error
+
+      - name: Upload assets to release
         if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "${{ github.event.release.tag_name }}" \
             "${{ env.DMG_PATH }}" \
+            "$RUNNER_TEMP/appcast.xml" \
             --clobber
-
-      - name: Calculate SHA256 and update Homebrew cask
-        if: github.event_name == 'release'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Calculate SHA256
-          SHA256=$(shasum -a 256 "${{ env.DMG_PATH }}" | awk '{print $1}')
-          VERSION=${{ steps.version.outputs.version }}
-
-          echo "SHA256: $SHA256"
-          echo "Version: $VERSION"
-
-          # Update cask file
-          sed -i '' "s/version \".*\"/version \"$VERSION\"/" Casks/bettercapture.rb
-          sed -i '' "s/sha256 .*/sha256 \"$SHA256\"/" Casks/bettercapture.rb
-
-          # Commit and push the updated cask
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Casks/bettercapture.rb
-          git commit -m "chore(brew): update cask to v$VERSION" || echo "No changes to commit"
-          git push origin HEAD:main
 
       - name: Clean up keychain
         if: always()

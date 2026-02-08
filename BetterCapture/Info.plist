@@ -8,5 +8,11 @@
 	<string>BetterCapture needs access to your microphone to record audio alongside screen captures.</string>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>BetterCapture needs access to screen recording to capture your screen content.</string>
+	<key>SUFeedURL</key>
+	<string>https://github.com/jsattler/BetterCapture/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>SPARKLE_PUBLIC_KEY</string>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
 </dict>
 </plist>

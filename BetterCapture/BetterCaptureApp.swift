@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct BetterCaptureApp: App {
     @State private var viewModel = RecorderViewModel()
+    @State private var updaterService = UpdaterService()
 
     var body: some Scene {
         // Menu bar extra - the primary interface
@@ -27,7 +28,7 @@ struct BetterCaptureApp: App {
 
         // Settings window
         Settings {
-            SettingsView(settings: viewModel.settings)
+            SettingsView(settings: viewModel.settings, updaterService: updaterService)
         }
     }
 }

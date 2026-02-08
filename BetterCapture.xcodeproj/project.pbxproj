@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		6C5C123D2F3893FE0082CE23 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6C0990E12F2BE0C200D48100 /* Sparkle */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		6C0990BD2F2BE0C200D48100 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -65,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6C5C123D2F3893FE0082CE23 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +130,7 @@
 			);
 			name = BetterCapture;
 			packageProductDependencies = (
+				6C0990E12F2BE0C200D48100 /* Sparkle */,
 			);
 			productName = BetterCapture;
 			productReference = 6C0990AF2F2BE0C100D48100 /* BetterCapture.app */;
@@ -208,6 +214,9 @@
 			);
 			mainGroup = 6C0990A62F2BE0C100D48100;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6C0990E02F2BE0C200D48100 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6C0990B02F2BE0C100D48100 /* Products */;
 			projectDirPath = "";
@@ -598,6 +607,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6C0990E02F2BE0C200D48100 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6C0990E12F2BE0C200D48100 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6C0990E02F2BE0C200D48100 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6C0990A72F2BE0C100D48100 /* Project object */;
 }

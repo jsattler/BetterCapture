@@ -11,11 +11,12 @@ import SwiftUI
 /// The settings window for BetterCapture
 struct SettingsView: View {
     @Bindable var settings: SettingsStore
+    var updaterService: UpdaterService
 
     var body: some View {
         TabView {
             Tab("General", systemImage: "gearshape") {
-                GeneralSettingsView(settings: settings)
+                GeneralSettingsView(settings: settings, updaterService: updaterService)
             }
 
             Tab("Video", systemImage: "video") {
@@ -157,6 +158,15 @@ struct AudioSettingsView: View {
 
 struct GeneralSettingsView: View {
     @Bindable var settings: SettingsStore
+    var updaterService: UpdaterService
+
+    @State private var automaticallyChecksForUpdates: Bool
+
+    init(settings: SettingsStore, updaterService: UpdaterService) {
+        self.settings = settings
+        self.updaterService = updaterService
+        self._automaticallyChecksForUpdates = State(initialValue: updaterService.automaticallyChecksForUpdates)
+    }
 
     /// Formats the output directory path for display
     private var displayPath: String {
@@ -196,10 +206,16 @@ struct GeneralSettingsView: View {
             }
 
             Section("Software Updates") {
-                Toggle("Automatically check for updates", isOn: $settings.automaticallyCheckForUpdates)
+                Toggle("Automatically check for updates", isOn: $automaticallyChecksForUpdates)
+                    .onChange(of: automaticallyChecksForUpdates) { _, newValue in
+                        updaterService.automaticallyChecksForUpdates = newValue
+                    }
 
                 LabeledContent("Updates") {
-                    Button("Check for Update") {}
+                    Button("Check for Update") {
+                        updaterService.checkForUpdates()
+                    }
+                    .disabled(!updaterService.canCheckForUpdates)
                 }
             }
 
@@ -255,5 +271,5 @@ struct AboutSection: View {
 // MARK: - Preview
 
 #Preview {
-    SettingsView(settings: SettingsStore())
+    SettingsView(settings: SettingsStore(), updaterService: UpdaterService())
 }
