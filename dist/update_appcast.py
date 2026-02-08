@@ -16,6 +16,7 @@ Expected files in the current directory:
 
 Required environment variables:
     - VERSION            The version number (e.g. 1.0.0).
+    - BUILD_NUMBER       The build number (typically same as VERSION).
     - DMG_URL            The download URL for the DMG.
 
 Optional environment variables:
@@ -33,6 +34,7 @@ from datetime import datetime, timezone
 
 now = datetime.now(timezone.utc)
 version = os.environ["VERSION"]
+build_number = os.environ["BUILD_NUMBER"]
 dmg_url = os.environ["DMG_URL"]
 release_notes = os.environ.get("RELEASE_NOTES", "")
 release_url = os.environ.get("RELEASE_URL", "")
@@ -208,9 +210,8 @@ elem = ET.SubElement(item, "pubDate")
 elem.text = now.strftime(pubdate_format)
 
 elem = ET.SubElement(item, f"{{{SPARKLE_NS}}}version")
-# Use a build number derived from version for CFBundleVersion comparison
 # Sparkle compares sparkle:version against CFBundleVersion
-elem.text = "1"  # Will be overridden in CI with the actual build number
+elem.text = build_number
 
 elem = ET.SubElement(item, f"{{{SPARKLE_NS}}}shortVersionString")
 elem.text = version

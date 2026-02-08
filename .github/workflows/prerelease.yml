@@ -70,12 +70,21 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building pre-release version: $VERSION"
 
-      - name: Update version in project
+      - name: Determine build identifiers
+        id: build
         run: |
           VERSION=${{ steps.version.outputs.version }}
           SHORT_SHA=$(git rev-parse --short HEAD)
-          agvtool new-marketing-version "$VERSION"
-          agvtool new-version -all "$SHORT_SHA"
+          echo "marketing_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build_number=$VERSION" >> $GITHUB_OUTPUT
+          echo "git_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "Marketing version: $VERSION"
+          echo "Build number: $VERSION"
+          echo "Git SHA: $SHORT_SHA"
+
+      - name: Set git SHA in Info.plist
+        run: |
+          /usr/libexec/PlistBuddy -c "Add :GitSHA string ${{ steps.build.outputs.git_sha }}" "BetterCapture/Info.plist"
 
       - name: Build application
         run: |
@@ -90,6 +99,8 @@ jobs:
             CODE_SIGN_IDENTITY="Developer ID Application" \
             CODE_SIGN_STYLE=Manual \
             OTHER_CODE_SIGN_FLAGS="--timestamp --options=runtime" \
+            MARKETING_VERSION="${{ steps.build.outputs.marketing_version }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.build.outputs.build_number }}" \
             | xcbeautify --renderer github-actions
 
       - name: Export application

@@ -80,18 +80,24 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
-      - name: Update version in project
+      - name: Determine build identifiers
+        id: build
         run: |
           VERSION=${{ steps.version.outputs.version }}
           SHORT_SHA=$(git rev-parse --short HEAD)
-          agvtool new-marketing-version "$VERSION"
-          agvtool new-version -all "$SHORT_SHA"
+          echo "marketing_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build_number=$VERSION" >> $GITHUB_OUTPUT
+          echo "git_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "Marketing version: $VERSION"
+          echo "Build number: $VERSION"
+          echo "Git SHA: $SHORT_SHA"
 
-      - name: Set Sparkle public key in Info.plist
+      - name: Set Sparkle public key and git SHA in Info.plist
         env:
           SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_EDDSA_KEY }}
         run: |
           /usr/libexec/PlistBuddy -c "Set :SUPublicEDKey $SPARKLE_PUBLIC_KEY" "BetterCapture/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :GitSHA string ${{ steps.build.outputs.git_sha }}" "BetterCapture/Info.plist"
 
       - name: Build application
         run: |
@@ -106,6 +112,8 @@ jobs:
             CODE_SIGN_IDENTITY="Developer ID Application" \
             CODE_SIGN_STYLE=Manual \
             OTHER_CODE_SIGN_FLAGS="--timestamp --options=runtime" \
+            MARKETING_VERSION="${{ steps.build.outputs.marketing_version }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.build.outputs.build_number }}" \
             | xcbeautify --renderer github-actions
 
       - name: Export application
@@ -226,8 +234,10 @@ jobs:
             || echo "No previous appcast found, will create a fresh one"
 
           # Run the appcast generation script
+          # Note: BUILD_NUMBER uses VERSION for Sparkle comparison (not git SHA)
           cd "$APPCAST_DIR"
           VERSION="$VERSION" \
+          BUILD_NUMBER="$VERSION" \
           DMG_URL="$DMG_URL" \
           RELEASE_NOTES="$RELEASE_NOTES" \
           RELEASE_URL="$RELEASE_URL" \

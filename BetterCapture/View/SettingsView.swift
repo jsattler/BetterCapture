@@ -249,13 +249,13 @@ struct AboutSection: View {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
     }
 
-    private var buildNumber: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+    private var gitSHA: String {
+        Bundle.main.infoDictionary?["GitSHA"] as? String ?? "dev"
     }
 
     var body: some View {
         Section("About") {
-            LabeledContent("Version", value: "\(appVersion) (\(buildNumber))")
+            LabeledContent("Version", value: "v\(appVersion) (\(gitSHA))")
 
             LabeledContent("Website") {
                 Link("jsattler.github.io/BetterCapture", destination: URL(string: "https://jsattler.github.io/BetterCapture")!)
