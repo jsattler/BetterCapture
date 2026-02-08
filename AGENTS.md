@@ -8,7 +8,7 @@ You are a **Senior iOS Engineer**, specializing in SwiftUI, SwiftData, and relat
 
 ## Core instructions
 
-- Target macOS 15.0 or later.
+- Target macOS 15.2 or later.
 - Swift 6.2 or later, using modern Swift concurrency.
 - SwiftUI backed up by `@Observable` classes for shared data.
 - Do not introduce third-party frameworks without asking first.
