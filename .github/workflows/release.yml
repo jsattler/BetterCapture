@@ -83,11 +83,9 @@ jobs:
       - name: Update version in project
         run: |
           VERSION=${{ steps.version.outputs.version }}
-          # Extract major.minor for MARKETING_VERSION
-          MARKETING_VERSION=$(echo "$VERSION" | grep -oE '^[0-9]+\.[0-9]+')
-          # Use full version for display if it has patch
-          agvtool new-marketing-version "$MARKETING_VERSION"
-          agvtool new-version -all 1
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          agvtool new-marketing-version "$VERSION"
+          agvtool new-version -all "$SHORT_SHA"
 
       - name: Set Sparkle public key in Info.plist
         env:
