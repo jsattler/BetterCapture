@@ -30,9 +30,9 @@
       
       <!-- Content -->
       <div class="relative w-full py-6 md:py-8">
-        <div class="grid md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8 lg:gap-12 w-full items-center">
+        <div class="grid md:grid-cols-3 lg:grid-cols-7 gap-6 md:gap-8 lg:gap-12 w-full items-center">
           <!-- Left column (3/5 width) - Frosted glass card -->
-          <div class="md:col-span-2 lg:col-span-3">
+          <div class="md:col-span-2 lg:col-span-5">
             <div class="bg-white/20 backdrop-blur-xl rounded-2xl p-4 md:p-8 lg:p-12 2xl:p-24 text-center border border-white/30 shadow-2xl">
               <h1 class="text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-7xl text-white mb-4 md:mb-6">The macOS screen recorder for the rest of us</h1>
               <p class="text-sm md:text-base lg:text-lg 2xl:text-xl text-white/90 mb-4 md:mb-6 lg:mb-8 2xl:mb-10 max-w-xl mx-auto">
@@ -75,13 +75,18 @@
                   </svg>
                   Download from GitHub
                 </a>
+                
+                <!-- System requirement note -->
+                <p class="text-xs text-white/60 mt-2">
+                  (Requires macOS 15.2 Sequoia or later)
+                </p>
               </div>
             </div>
           </div>
           
           <!-- Right column (2/5 width) - Screenshot placeholder -->
           <div class="md:col-span-1 lg:col-span-2 flex items-center justify-center">
-            <div class="w-full max-w-[200px] md:max-w-[300px] lg:max-w-[320px] 2xl:max-w-md">
+            <div class="w-full scale-125">
               <img 
                 src="{base}screenshot-basic.png" 
                 alt="Better Capture Screenshot"

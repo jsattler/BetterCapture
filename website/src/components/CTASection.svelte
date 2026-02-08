@@ -62,6 +62,11 @@
             </svg>
             Download from GitHub
           </a>
+          
+          <!-- System requirement note -->
+          <p class="text-xs text-gray-500 mt-2">
+            (Requires macOS 15.2 Sequoia or later)
+          </p>
         </div>
       </div>
       

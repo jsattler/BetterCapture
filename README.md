@@ -34,7 +34,7 @@ brew install jsattler/tap/bettercapture
 
 Download the latest release from [GitHub Releases](https://github.com/jsattler/BetterCapture/releases/latest) and open `BetterCapture.dmg`.
 
-**Requirements**: macOS 15 (Sequoia) or later
+**Requirements**: macOS 15.2 (Sequoia) or later
 
 ## Contributing
 
