@@ -477,8 +477,10 @@ final class SettingsStore {
     private var frameRateRaw: Int {
         get {
             access(keyPath: \.frameRateRaw)
-            let value = UserDefaults.standard.integer(forKey: "frameRate")
-            return value == 0 ? 60 : value
+            guard UserDefaults.standard.object(forKey: "frameRate") != nil else {
+                return FrameRate.fps60.rawValue
+            }
+            return UserDefaults.standard.integer(forKey: "frameRate")
         }
         set {
             withMutation(keyPath: \.frameRateRaw) {
