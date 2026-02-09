@@ -265,17 +265,29 @@ extension RecorderViewModel: CaptureEngineDelegate {
     }
 
     func captureEngine(_ engine: CaptureEngine, didStopWithError error: Error?) {
-        if let error {
+        // Check if user clicked "Stop Sharing" in the menu bar
+        let isUserStopped = (error as? SCStreamError)?.code == .userStopped
+
+        if let error, !isUserStopped {
             lastError = error
             logger.error("Capture stopped with error: \(error.localizedDescription)")
         }
 
         // Clean up if we were recording
         if isRecording {
-            stopTimer()
-            assetWriter.cancel()
-            state = .idle
-            notificationService.sendRecordingStoppedNotification(error: error)
+            if isUserStopped {
+                // User clicked "Stop Sharing" - gracefully save the recording
+                logger.info("User stopped sharing via system UI, saving recording...")
+                Task {
+                    await stopRecording()
+                }
+            } else {
+                // Unexpected error - cancel the recording
+                stopTimer()
+                assetWriter.cancel()
+                state = .idle
+                notificationService.sendRecordingStoppedNotification(error: error)
+            }
         }
     }
 
