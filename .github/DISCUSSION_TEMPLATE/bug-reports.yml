@@ -1,15 +1,16 @@
-name: Bug Report
-description: File a bug report.
-title: "[Bug]: "
 labels: ["bug", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible to help us reproduce and fix the issue.
+        > [!IMPORTANT]
+        > Please search existing [Discussions](https://github.com/jsattler/BetterCapture/discussions?discussions_q=category%3A%22Bug+Reports%22) and [Issues](https://github.com/jsattler/BetterCapture/issues?q=sort%3Areactions-desc) before opening a new bug report to avoid duplicates.
+
+  - type: markdown
+    attributes:
+      value: "# Bug Report"
 
   - type: dropdown
-    id: version
     attributes:
       label: Version
       description: What version of BetterCapture are you running? You can find this in Settings > General.
@@ -21,8 +22,46 @@ body:
     validations:
       required: true
 
+  - type: input
+    attributes:
+      label: macOS Version
+      description: What version of macOS are you running? You can find this in  > About This Mac.
+      placeholder: "26.1 (Tahoe)"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Describe the bug you encountered.
+      placeholder: Tell us what you see!
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: What did you expect to happen?
+      description: Describe the behavior you expected.
+      placeholder: Tell us what you expected!
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. See error...
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "# Capture Configuration"
+
   - type: dropdown
-    id: video-codec
     attributes:
       label: Video Codec
       description: Which video codec are you using?
@@ -36,7 +75,6 @@ body:
       required: true
 
   - type: dropdown
-    id: audio-codec
     attributes:
       label: Audio Codec
       description: Which audio codec are you using?
@@ -48,7 +86,6 @@ body:
       required: true
 
   - type: dropdown
-    id: container-format
     attributes:
       label: Container Format
       description: Which container format are you using?
@@ -60,7 +97,6 @@ body:
       required: true
 
   - type: dropdown
-    id: alpha-channel
     attributes:
       label: Alpha Channel
       description: Is alpha channel capture enabled?
@@ -71,7 +107,6 @@ body:
       required: false
 
   - type: dropdown
-    id: hdr
     attributes:
       label: HDR
       description: Is HDR capture enabled?
@@ -82,7 +117,6 @@ body:
       required: false
 
   - type: checkboxes
-    id: content-filters
     attributes:
       label: Content Filters
       description: Which content filters are active?
@@ -95,7 +129,6 @@ body:
         - label: Show BetterCapture
 
   - type: dropdown
-    id: microphone
     attributes:
       label: Microphone
       description: Is microphone capture enabled?
@@ -105,32 +138,13 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: what-happened
+  - type: markdown
     attributes:
-      label: What happened?
-      description: Describe the bug you encountered.
-      placeholder: Tell us what you see!
-    validations:
-      required: true
+      value: "# Acknowledgements"
 
-  - type: textarea
-    id: expected-behavior
+  - type: checkboxes
     attributes:
-      label: What did you expect to happen?
-      description: Describe the behavior you expected.
-      placeholder: Tell us what you expected!
-    validations:
-      required: false
-
-  - type: textarea
-    id: steps-to-reproduce
-    attributes:
-      label: Steps to Reproduce
-      description: How can we reproduce this issue?
-      placeholder: |
-        1. Go to...
-        2. Click on...
-        3. See error...
-    validations:
-      required: false
+      label: "I confirm that:"
+      options:
+        - label: I have searched existing Discussions and Issues and this is not a duplicate.
+          required: true
