@@ -3,11 +3,15 @@
   const base = import.meta.env.BASE_URL;
 </script>
 
+<svelte:head>
+  <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="jsattler" data-color="#FFDD00" data-emoji="☕" data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff"></script>
+</svelte:head>
+
 <footer class="bg-gray-50 border-t border-gray-200 py-8 sm:py-10 md:py-12 px-4 sm:px-6">
   <div class="max-w-7xl mx-auto">
-    <div class="flex flex-col md:flex-row justify-between items-start gap-6 sm:gap-8 mb-6 sm:mb-8">
+    <div class="flex flex-col lg:flex-row justify-between items-start gap-6 sm:gap-8 mb-6 sm:mb-8">
       <!-- Brand -->
-      <div>
+      <div class="flex-1">
         <div class="flex items-center gap-2 mb-3 sm:mb-4">
           <img src="{base}favicon.svg" alt="BetterCapture logo" class="w-5 h-5 sm:w-6 sm:h-6" />
           <span class="text-lg sm:text-xl font-semibold text-gray-900">BetterCapture</span>
@@ -17,8 +21,27 @@
         </p>
       </div>
 
+      <!-- Support Section -->
+      <div class="flex-1 text-center">
+        <p class="text-gray-600 text-xs sm:text-sm mb-3">
+          Enjoying BetterCapture? Consider supporting its development.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+          <iframe 
+            src="https://github.com/sponsors/jsattler/button" 
+            title="Sponsor jsattler" 
+            height="32" 
+            width="114" 
+            style="border: 0;"
+          ></iframe>
+          <a href="https://www.buymeacoffee.com/jsattler" target="_blank" rel="noopener noreferrer">
+            <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 32px; width: auto; border-radius: 6px;">
+          </a>
+        </div>
+      </div>
+
       <!-- Links -->
-      <div class="flex flex-wrap gap-6 sm:gap-8 md:gap-12">
+      <div class="flex-1 flex flex-wrap gap-6 sm:gap-8 md:gap-12 justify-end">
         <div>
           <h4 class="text-gray-900 font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Resources</h4>
           <ul class="space-y-1.5 sm:space-y-2">
