@@ -199,6 +199,11 @@ final class AreaSelectionView: NSView {
     /// Overlay dimming opacity
     private let dimmingOpacity: CGFloat = 0.5
 
+    /// Confirm and cancel buttons shown during adjusting state
+    private var confirmButton: NSButton?
+    private var cancelButton: NSButton?
+    private var buttonContainer: NSView?
+
     // MARK: - Initialization
 
     init(frame: NSRect, screen: NSScreen) {
@@ -219,6 +224,7 @@ final class AreaSelectionView: NSView {
         selectionRect = .zero
         interactionState = .idle
         showOverlay = false
+        hideActionButtons()
         needsDisplay = true
     }
 
@@ -273,10 +279,12 @@ final class AreaSelectionView: NSView {
         case .adjusting:
             // Check if clicking on a resize handle first (highest priority)
             if let handle = resizeHandle(at: point) {
+                hideActionButtons()
                 interactionState = .resizing(handle: handle)
             }
             // Check if clicking inside the selection (to move it)
             else if selectionRect.contains(point) {
+                hideActionButtons()
                 let offset = CGPoint(
                     x: point.x - selectionRect.origin.x,
                     y: point.y - selectionRect.origin.y
@@ -285,6 +293,7 @@ final class AreaSelectionView: NSView {
             }
             // Clicking outside the selection starts a new one
             else {
+                hideActionButtons()
                 beginDrawing(at: point)
             }
 
@@ -329,9 +338,9 @@ final class AreaSelectionView: NSView {
     override func mouseUp(with event: NSEvent) {
         switch interactionState {
         case .drawing:
-            enforceMinimumSize()
             if selectionRect.width >= minimumSize && selectionRect.height >= minimumSize {
                 interactionState = .adjusting
+                showActionButtons()
             } else {
                 // Selection too small, reset
                 selectionRect = .zero
@@ -341,10 +350,12 @@ final class AreaSelectionView: NSView {
 
         case .moving:
             interactionState = .adjusting
+            showActionButtons()
 
         case .resizing:
             enforceMinimumSize()
             interactionState = .adjusting
+            showActionButtons()
 
         default:
             break
@@ -392,7 +403,6 @@ final class AreaSelectionView: NSView {
         if case .adjusting = interactionState {
             drawResizeHandles(in: context)
             drawDimensionLabel(in: context)
-            drawConfirmHint(in: context)
         }
 
         // Draw dimension label while drawing
@@ -460,33 +470,94 @@ final class AreaSelectionView: NSView {
         attributedString.draw(at: textPoint)
     }
 
-    private func drawConfirmHint(in context: CGContext) {
-        let text = "Press Enter to confirm, Escape to cancel"
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 12, weight: .regular),
-            .foregroundColor: NSColor.white.withAlphaComponent(0.8)
-        ]
-        let attributedString = NSAttributedString(string: text, attributes: attributes)
-        let size = attributedString.size()
+    // MARK: - Action Buttons
 
-        let padding: CGFloat = 8
-        let backgroundRect = CGRect(
-            x: (bounds.width - size.width - padding * 2) / 2,
-            y: 40,
-            width: size.width + padding * 2,
-            height: size.height + padding * 2
+    private func showActionButtons() {
+        guard buttonContainer == nil else {
+            updateButtonPositions()
+            return
+        }
+
+        let container = NSView()
+
+        let confirm = makeActionButton(
+            title: "Confirm",
+            color: .systemBlue,
+            action: #selector(confirmButtonClicked)
         )
 
-        context.setFillColor(NSColor.black.withAlphaComponent(0.6).cgColor)
-        let bgPath = CGPath(roundedRect: backgroundRect, cornerWidth: 4, cornerHeight: 4, transform: nil)
-        context.addPath(bgPath)
-        context.fillPath()
-
-        let textPoint = CGPoint(
-            x: backgroundRect.origin.x + padding,
-            y: backgroundRect.origin.y + padding
+        let cancel = makeActionButton(
+            title: "Cancel",
+            color: .systemRed,
+            action: #selector(cancelButtonClicked)
         )
-        attributedString.draw(at: textPoint)
+
+        container.addSubview(confirm)
+        container.addSubview(cancel)
+        addSubview(container)
+
+        confirm.translatesAutoresizingMaskIntoConstraints = false
+        cancel.translatesAutoresizingMaskIntoConstraints = false
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            confirm.topAnchor.constraint(equalTo: container.topAnchor),
+            confirm.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            confirm.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            cancel.topAnchor.constraint(equalTo: container.topAnchor),
+            cancel.leadingAnchor.constraint(equalTo: confirm.trailingAnchor, constant: 12),
+            cancel.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            cancel.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+        ])
+
+        self.confirmButton = confirm
+        self.cancelButton = cancel
+        self.buttonContainer = container
+
+        updateButtonPositions()
+    }
+
+    private func hideActionButtons() {
+        buttonContainer?.removeFromSuperview()
+        buttonContainer = nil
+        confirmButton = nil
+        cancelButton = nil
+    }
+
+    private func updateButtonPositions() {
+        guard let container = buttonContainer else { return }
+
+        // Let auto layout calculate the intrinsic size, then position manually
+        container.layoutSubtreeIfNeeded()
+        let fittingSize = container.fittingSize
+
+        container.frame = CGRect(
+            x: selectionRect.midX - fittingSize.width / 2,
+            y: selectionRect.midY - fittingSize.height / 2,
+            width: fittingSize.width,
+            height: fittingSize.height
+        )
+    }
+
+    private func makeActionButton(title: String, color: NSColor, action: Selector) -> NSButton {
+        let button = NSButton(title: title, target: self, action: action)
+        button.isBordered = false
+        button.wantsLayer = true
+        button.layer?.backgroundColor = color.withAlphaComponent(0.7).cgColor
+        button.layer?.cornerRadius = 18
+        button.contentTintColor = .white
+        button.font = .systemFont(ofSize: 14, weight: .medium)
+        button.widthAnchor.constraint(greaterThanOrEqualToConstant: 100).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 36).isActive = true
+        return button
+    }
+
+    @objc private func confirmButtonClicked() {
+        confirmSelectionIfValid()
+    }
+
+    @objc private func cancelButtonClicked() {
+        delegate?.areaSelectionViewDidCancel(self)
     }
 
     // MARK: - Handle Calculation
@@ -610,7 +681,9 @@ final class AreaSelectionView: NSView {
             return
         }
 
-        if let handle = resizeHandle(at: point) {
+        if let container = buttonContainer, container.frame.contains(point) {
+            NSCursor.arrow.set()
+        } else if let handle = resizeHandle(at: point) {
             cursorForHandle(handle).set()
         } else if selectionRect.contains(point) {
             NSCursor.openHand.set()
