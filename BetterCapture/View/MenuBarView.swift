@@ -56,6 +56,7 @@ struct MenuBarView: View {
 
             // Content Selection
             ContentSharingPickerButton(viewModel: viewModel)
+            AreaSelectionButton(viewModel: viewModel)
 
             // Preview thumbnail below the content selection button
             if viewModel.hasContentSelected {
@@ -235,6 +236,10 @@ struct ContentSharingPickerButton: View {
     let viewModel: RecorderViewModel
     @State private var isHovered = false
 
+    private var isPickerSelection: Bool {
+        viewModel.hasContentSelected && !viewModel.isAreaSelection
+    }
+
     var body: some View {
         Button {
             viewModel.presentPicker()
@@ -242,15 +247,61 @@ struct ContentSharingPickerButton: View {
             HStack(spacing: 12) {
                 ZStack {
                     Circle()
-                        .fill(viewModel.hasContentSelected ? .blue.opacity(0.8) : .gray.opacity(0.2))
+                        .fill(isPickerSelection ? .blue.opacity(0.8) : .gray.opacity(0.2))
+                        .frame(width: 24, height: 24)
+
+                    Image(systemName: "macwindow")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(isPickerSelection ? .white : .primary)
+                }
+
+                Text(isPickerSelection ? "Change Selection..." : "Select Content...")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.primary)
+
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(isHovered ? .gray.opacity(0.1) : .clear)
+                .padding(.horizontal, 4)
+        )
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+}
+
+// MARK: - Area Selection Button
+
+/// A button that presents the area selection overlay for drawing a capture rectangle
+struct AreaSelectionButton: View {
+    let viewModel: RecorderViewModel
+    @State private var isHovered = false
+
+    var body: some View {
+        Button {
+            Task {
+                await viewModel.presentAreaSelection()
+            }
+        } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(viewModel.isAreaSelection ? .blue.opacity(0.8) : .gray.opacity(0.2))
                         .frame(width: 24, height: 24)
 
                     Image(systemName: "rectangle.dashed")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(viewModel.hasContentSelected ? .white : .primary)
+                        .foregroundStyle(viewModel.isAreaSelection ? .white : .primary)
                 }
 
-                Text(viewModel.hasContentSelected ? "Change Selection..." : "Select Content...")
+                Text(viewModel.isAreaSelection ? "Change Area..." : "Select Area...")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(.primary)
 
