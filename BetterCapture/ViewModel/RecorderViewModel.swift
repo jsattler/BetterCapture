@@ -282,11 +282,11 @@ extension RecorderViewModel: CaptureEngineDelegate {
                     await stopRecording()
                 }
             } else {
-                // Unexpected error - cancel the recording
-                stopTimer()
-                assetWriter.cancel()
-                state = .idle
-                notificationService.sendRecordingStoppedNotification(error: error)
+                // Stream error during recording - try to save what we have
+                logger.warning("Stream stopped unexpectedly, attempting to save recording...")
+                Task {
+                    await stopRecording()
+                }
             }
         }
     }
