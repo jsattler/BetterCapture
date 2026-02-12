@@ -21,11 +21,7 @@ struct AreaSelectionResult: Sendable {
 /// A borderless, transparent panel that covers a display for rectangle drawing
 final class AreaSelectionPanel: NSPanel {
 
-    /// The screen this panel covers
-    let targetScreen: NSScreen
-
     init(screen: NSScreen) {
-        self.targetScreen = screen
         super.init(
             contentRect: screen.frame,
             styleMask: [.borderless, .nonactivatingPanel],
@@ -110,6 +106,7 @@ final class AreaSelectionOverlay {
         }
         panels.removeAll()
         overlayViews.removeAll()
+        NSCursor.arrow.set()
     }
 
     /// Clears the selection on all overlay views except the given one
@@ -173,6 +170,7 @@ private enum ResizeHandle {
 // MARK: - AreaSelectionView
 
 /// The NSView that handles drawing the overlay, selection rectangle, and user interaction
+@MainActor
 final class AreaSelectionView: NSView {
 
     // MARK: - Properties
@@ -426,12 +424,12 @@ final class AreaSelectionView: NSView {
 
     private func drawDimensionLabel(in context: CGContext) {
         let scale = screen.backingScaleFactor
-        let pixelWidth = Int(selectionRect.width * scale)
-        let pixelHeight = Int(selectionRect.height * scale)
+        let pixelWidth = selectionRect.width * scale
+        let pixelHeight = selectionRect.height * scale
 
-        // Snap to even for display
-        let evenWidth = pixelWidth % 2 == 0 ? pixelWidth : pixelWidth + 1
-        let evenHeight = pixelHeight % 2 == 0 ? pixelHeight : pixelHeight + 1
+        // Snap to even pixel counts (matches the formula used by RecorderViewModel)
+        let evenWidth = Int(ceil(pixelWidth / 2) * 2)
+        let evenHeight = Int(ceil(pixelHeight / 2) * 2)
 
         let text = "\(evenWidth) x \(evenHeight)"
         let attributes: [NSAttributedString.Key: Any] = [

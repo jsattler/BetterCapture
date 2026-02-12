@@ -109,28 +109,6 @@ final class PreviewService: NSObject {
         await stopStream()
     }
 
-    /// Starts or updates the preview stream for the given content filter
-    /// - Parameter filter: The content filter to capture
-    func captureSnapshot(for filter: SCContentFilter) async {
-        currentFilter = filter
-
-        // If already streaming, update the filter
-        if let stream, isCapturing {
-            do {
-                try await stream.updateContentFilter(filter)
-                logger.info("Updated preview stream filter")
-            } catch {
-                logger.error("Failed to update preview filter: \(error.localizedDescription)")
-                await stopStream()
-                await startStream(with: filter)
-            }
-            return
-        }
-
-        // Otherwise start a new stream
-        await startStream(with: filter)
-    }
-
     /// Starts the preview stream
     private func startStream(with filter: SCContentFilter) async {
         guard !isCapturing else { return }

@@ -180,14 +180,6 @@ final class RecorderViewModel {
         }
     }
 
-    /// Clears the area selection
-    func clearAreaSelection() {
-        selectedSourceRect = nil
-        selectedContentFilter = nil
-        previewService.clearPreview()
-        logger.info("Area selection cleared")
-    }
-
     /// Starts a new recording session
     func startRecording() async {
         guard canStartRecording else {
@@ -307,17 +299,11 @@ final class RecorderViewModel {
     // MARK: - Helper Methods
 
     private func getContentSize(from filter: SCContentFilter) async -> CGSize {
-        // If area selection is active, use the source rect dimensions
+        // If area selection is active, use the source rect dimensions.
+        // The sourceRect is already snapped to even pixel counts in presentAreaSelection().
         if let sourceRect = selectedSourceRect {
             let scale = CGFloat(filter.pointPixelScale)
-            let width = sourceRect.width * scale
-            let height = sourceRect.height * scale
-
-            // Snap to even pixel counts for codec compatibility
-            let evenWidth = ceil(width / 2) * 2
-            let evenHeight = ceil(height / 2) * 2
-
-            return CGSize(width: evenWidth, height: evenHeight)
+            return CGSize(width: sourceRect.width * scale, height: sourceRect.height * scale)
         }
 
         // Get the content rect from the filter

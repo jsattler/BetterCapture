@@ -244,13 +244,6 @@ enum ContentSelectionMode: String {
         }
     }
 
-    var activeLabel: String {
-        switch self {
-        case .pickContent: "Change Selection..."
-        case .selectArea: "Change Area..."
-        }
-    }
-
     var icon: String {
         switch self {
         case .pickContent: "macwindow"
@@ -283,10 +276,7 @@ struct ContentSelectionButton: View {
     }
 
     private var buttonLabel: String {
-        if hasActiveSelection {
-            return mode.activeLabel
-        }
-        return "\(mode.label)..."
+        hasActiveSelection ? "Change \(mode.label)..." : "\(mode.label)..."
     }
 
     var body: some View {
