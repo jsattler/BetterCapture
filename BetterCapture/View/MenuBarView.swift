@@ -12,6 +12,7 @@ import ScreenCaptureKit
 struct MenuBarView: View {
     @Bindable var viewModel: RecorderViewModel
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.dismiss) private var dismiss
     @State private var currentPreview: NSImage?
 
     var body: some View {
@@ -46,6 +47,7 @@ struct MenuBarView: View {
                 accentColor: .green,
                 isDisabled: !viewModel.canStartRecording
             ) {
+                dismiss()
                 Task {
                     await viewModel.startRecording()
                 }
@@ -55,8 +57,7 @@ struct MenuBarView: View {
             MenuBarDivider()
 
             // Content Selection
-            ContentSharingPickerButton(viewModel: viewModel)
-            AreaSelectionButton(viewModel: viewModel)
+            ContentSelectionButton(viewModel: viewModel, onDismissPanel: { dismiss() })
 
             // Preview thumbnail below the content selection button
             if viewModel.hasContentSelected {
@@ -229,96 +230,164 @@ struct RecordingButton: View {
     }
 }
 
-// MARK: - Content Sharing Picker Button
+// MARK: - Content Selection Mode
 
-/// A button that presents the system content sharing picker with hover effect
-struct ContentSharingPickerButton: View {
-    let viewModel: RecorderViewModel
-    @State private var isHovered = false
+/// The mode for content selection: picking content via the system picker, or drawing a screen area
+enum ContentSelectionMode: String {
+    case pickContent
+    case selectArea
 
-    private var isPickerSelection: Bool {
-        viewModel.hasContentSelected && !viewModel.isAreaSelection
+    var label: String {
+        switch self {
+        case .pickContent: "Pick Content"
+        case .selectArea: "Select Area"
+        }
     }
 
-    var body: some View {
-        Button {
-            viewModel.presentPicker()
-        } label: {
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(isPickerSelection ? .blue.opacity(0.8) : .gray.opacity(0.2))
-                        .frame(width: 24, height: 24)
-
-                    Image(systemName: "macwindow")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(isPickerSelection ? .white : .primary)
-                }
-
-                Text(isPickerSelection ? "Change Selection..." : "Select Content...")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.primary)
-
-                Spacer()
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .contentShape(.rect)
+    var activeLabel: String {
+        switch self {
+        case .pickContent: "Change Selection..."
+        case .selectArea: "Change Area..."
         }
-        .buttonStyle(.plain)
-        .background(
-            RoundedRectangle(cornerRadius: 4)
-                .fill(isHovered ? .gray.opacity(0.1) : .clear)
-                .padding(.horizontal, 4)
-        )
-        .onHover { hovering in
-            isHovered = hovering
+    }
+
+    var icon: String {
+        switch self {
+        case .pickContent: "macwindow"
+        case .selectArea: "rectangle.dashed"
         }
     }
 }
 
-// MARK: - Area Selection Button
+// MARK: - Content Selection Button
 
-/// A button that presents the area selection overlay for drawing a capture rectangle
-struct AreaSelectionButton: View {
+/// A split button that triggers the active content selection mode, with a dropdown chevron to switch modes.
+/// The left portion triggers the action; the right chevron opens a dropdown to change the mode.
+/// Styled consistently with other menu bar rows.
+struct ContentSelectionButton: View {
     let viewModel: RecorderViewModel
-    @State private var isHovered = false
+    var onDismissPanel: (() -> Void)?
+    @AppStorage("contentSelectionMode") private var mode: ContentSelectionMode = .pickContent
+    @State private var isDropdownExpanded = false
+    @State private var isMainHovered = false
+    @State private var isChevronHovered = false
+
+    /// Whether content has been selected via the currently active mode
+    private var hasActiveSelection: Bool {
+        switch mode {
+        case .pickContent:
+            viewModel.hasContentSelected && !viewModel.isAreaSelection
+        case .selectArea:
+            viewModel.isAreaSelection
+        }
+    }
+
+    private var buttonLabel: String {
+        if hasActiveSelection {
+            return mode.activeLabel
+        }
+        return "\(mode.label)..."
+    }
 
     var body: some View {
-        Button {
+        VStack(spacing: 0) {
+            // Main button row
+            HStack(spacing: 0) {
+                // Left: action button
+                Button {
+                    triggerAction()
+                } label: {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(hasActiveSelection ? .blue.opacity(0.8) : .gray.opacity(0.2))
+                                .frame(width: 24, height: 24)
+
+                            Image(systemName: mode.icon)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(hasActiveSelection ? .white : .primary)
+                        }
+
+                        Text(buttonLabel)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+                    }
+                    .padding(.leading, 12)
+                    .padding(.vertical, 4)
+                    .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+                .onHover { hovering in
+                    isMainHovered = hovering
+                }
+
+                // Right: chevron dropdown toggle
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isDropdownExpanded.toggle()
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(isDropdownExpanded ? 90 : 0))
+                        .frame(width: 28, height: 28)
+                        .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+                .padding(.trailing, 12)
+                .onHover { hovering in
+                    isChevronHovered = hovering
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill((isMainHovered || isChevronHovered) ? .gray.opacity(0.1) : .clear)
+                    .padding(.horizontal, 4)
+            )
+
+            // Dropdown options
+            if isDropdownExpanded {
+                VStack(spacing: 0) {
+                    DeviceRow(
+                        name: ContentSelectionMode.pickContent.label,
+                        icon: ContentSelectionMode.pickContent.icon,
+                        isSelected: mode == .pickContent
+                    ) {
+                        mode = .pickContent
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isDropdownExpanded = false
+                        }
+                    }
+
+                    DeviceRow(
+                        name: ContentSelectionMode.selectArea.label,
+                        icon: ContentSelectionMode.selectArea.icon,
+                        isSelected: mode == .selectArea
+                    ) {
+                        mode = .selectArea
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isDropdownExpanded = false
+                        }
+                    }
+                }
+                .padding(.leading, 12)
+                .background(.quaternary.opacity(0.3))
+            }
+        }
+    }
+
+    private func triggerAction() {
+        switch mode {
+        case .pickContent:
+            viewModel.presentPicker()
+        case .selectArea:
+            onDismissPanel?()
             Task {
                 await viewModel.presentAreaSelection()
             }
-        } label: {
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(viewModel.isAreaSelection ? .blue.opacity(0.8) : .gray.opacity(0.2))
-                        .frame(width: 24, height: 24)
-
-                    Image(systemName: "rectangle.dashed")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(viewModel.isAreaSelection ? .white : .primary)
-                }
-
-                Text(viewModel.isAreaSelection ? "Change Area..." : "Select Area...")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.primary)
-
-                Spacer()
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .contentShape(.rect)
-        }
-        .buttonStyle(.plain)
-        .background(
-            RoundedRectangle(cornerRadius: 4)
-                .fill(isHovered ? .gray.opacity(0.1) : .clear)
-                .padding(.horizontal, 4)
-        )
-        .onHover { hovering in
-            isHovered = hovering
         }
     }
 }
