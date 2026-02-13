@@ -1,8 +1,6 @@
 <script lang="ts">
   import FeatureCard from './FeatureCard.svelte';
 
-  const base = import.meta.env.BASE_URL;
-
   const features = [
     {
       title: "Feels Like Home",
@@ -13,8 +11,8 @@
         "Lives in your menu bar for instant access",
         "Follows Apple's Human Interface Guidelines"
       ],
-      imageUrl: `${base}grainy-gradient-feat-1.jpg`,
-      screenshotUrl: `${base}screenshot-basic.png`
+      imageUrl: "/grainy-gradient-feat-1.jpg",
+      screenshotUrl: "/screenshot-basic.png"
     },
     {
       title: "Professional Recording",
@@ -25,7 +23,7 @@
         "Record system audio and microphone simultaneously",
         "Content filtering to exclude specific windows"
       ],
-      imageUrl: `${base}grainy-gradient-feat-2.jpg`,
+      imageUrl: "/grainy-gradient-feat-2.jpg",
       badges: ["ProRes 4444", "HEVC", "H.264"]
     },
     {
@@ -37,7 +35,7 @@
         "No account required to use the app",
         "Open source so you can verify our claims"
       ],
-      imageUrl: `${base}grainy-gradient-feat-3.jpg`,
+      imageUrl: "/grainy-gradient-feat-3.jpg",
       badges: ["No Tracking", "No Analytics", "100% Local"]
     },
     {
@@ -49,7 +47,7 @@
         "Community-driven development",
         "Contribute features or report bugs on GitHub"
       ],
-      imageUrl: `${base}grainy-gradient-feat-4.jpg`,
+      imageUrl: "/grainy-gradient-feat-4.jpg",
       badges: ["MIT License", "100% Free", "Open Source"]
     }
   ];
