@@ -18,19 +18,19 @@
 
 <section class="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
   <div class="max-w-lg sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-5xl 2xl:max-w-5xl mx-auto">
-    <div class="bg-gray-50 rounded-2xl sm:rounded-3xl overflow-hidden">
+    <div class="bg-white/5 rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10">
       <div class="p-6 sm:p-8 md:p-12 lg:p-16 xl:p-20 text-center">
-        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
+        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
           Ready to Start Recording?
         </h2>
-        <p class="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-8 md:mb-10 max-w-2xl mx-auto">
+        <p class="text-base sm:text-lg md:text-xl text-white/60 mb-6 sm:mb-8 md:mb-10 max-w-2xl mx-auto">
           Install BetterCapture and experience screen recording the way it should be. Free, fast, and private.
         </p>
         
         <!-- Installation section -->
         <div class="flex flex-col items-center gap-3 sm:gap-4 max-w-md sm:max-w-lg mx-auto">
           <!-- Homebrew command -->
-          <div class="w-full bg-black/40 backdrop-blur-sm rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-mono text-xs sm:text-sm text-white/90 flex items-center justify-between gap-2 sm:gap-3 border border-white/10">
+          <div class="w-full bg-white/5 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 font-mono text-xs sm:text-sm text-white/90 flex items-center justify-between gap-2 sm:gap-3 border border-white/10">
             <code class="truncate">brew install jsattler/tap/bettercapture</code>
             <button 
               onclick={copyToClipboard}
@@ -63,7 +63,7 @@
           </a>
           
           <!-- System requirement note -->
-          <p class="text-xs text-gray-500 mt-1 sm:mt-2">
+          <p class="text-xs text-white/40 mt-1 sm:mt-2">
             (Requires macOS 15.2 Sequoia or later)
           </p>
         </div>

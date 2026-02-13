@@ -56,8 +56,8 @@
 <section id="features" class="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
   <div class="max-w-lg sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-5xl mx-auto">
     <div class="text-center mb-10 sm:mb-12 md:mb-16">
-      <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">Simple, Powerful, Private</h2>
-      <p class="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+      <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4">Simple, Powerful, Private</h2>
+      <p class="text-base sm:text-lg md:text-xl text-white/60 max-w-2xl mx-auto">
         Screen recording that respects your time and your privacy
       </p>
     </div>

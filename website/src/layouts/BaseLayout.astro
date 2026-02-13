@@ -62,8 +62,8 @@ const {
 		<link rel="manifest" href="/site.webmanifest" />
 
 		<!-- Theme Color -->
-		<meta name="theme-color" content="#ffffff" />
-		<meta name="color-scheme" content="light" />
+		<meta name="theme-color" content="#000000" />
+		<meta name="color-scheme" content="dark" />
 
 		<!-- Performance Hints -->
 		<link rel="dns-prefetch" href="https://fonts.googleapis.com" />
@@ -76,7 +76,7 @@ const {
 		<!-- Allow pages to inject additional head content -->
 		<slot name="head" />
 	</head>
-	<body class="bg-white text-gray-900 font-sans antialiased">
+	<body class="bg-black text-white font-sans antialiased">
 		<Navbar client:load />
 		<slot />
 		<Footer client:load />
