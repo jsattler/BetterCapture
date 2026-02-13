@@ -12,21 +12,21 @@
   let { title, description, features, imageUrl, screenshotUrl, badges, reverse = false }: Props = $props();
 </script>
 
-<div class="grid md:grid-cols-2 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg max-w-lg md:max-w-3xl lg:max-w-4xl xl:max-w-none mx-auto">
+<div class="grid md:grid-cols-2 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg max-w-lg md:max-w-3xl lg:max-w-4xl xl:max-w-none mx-auto border border-white/10">
   {#if reverse}
     <!-- Content first on mobile, image on left for desktop -->
     <!-- Content -->
-    <div class="bg-gray-50 p-5 sm:p-6 md:p-8 flex flex-col justify-center min-h-[200px] sm:min-h-[240px] order-1 md:order-2">
-      <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">{title}</h3>
-      <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">{description}</p>
+    <div class="bg-white/5 p-5 sm:p-6 md:p-8 flex flex-col justify-center min-h-[200px] sm:min-h-[240px] order-1 md:order-2">
+      <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">{title}</h3>
+      <p class="text-sm sm:text-base text-white/60 mb-4 sm:mb-6">{description}</p>
 
       <ul class="space-y-2 sm:space-y-3">
         {#each features as feature}
           <li class="flex items-start gap-2 sm:gap-3">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            <span class="text-sm sm:text-base text-gray-700">{feature}</span>
+            <span class="text-sm sm:text-base text-white/70">{feature}</span>
           </li>
         {/each}
       </ul>
@@ -70,17 +70,17 @@
   {:else}
     <!-- Content first on mobile, content on left for desktop -->
     <!-- Content -->
-    <div class="bg-gray-50 p-5 sm:p-6 md:p-8 flex flex-col justify-center min-h-[200px] sm:min-h-[240px] order-1">
-      <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">{title}</h3>
-      <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">{description}</p>
+    <div class="bg-white/5 p-5 sm:p-6 md:p-8 flex flex-col justify-center min-h-[200px] sm:min-h-[240px] order-1">
+      <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">{title}</h3>
+      <p class="text-sm sm:text-base text-white/60 mb-4 sm:mb-6">{description}</p>
 
       <ul class="space-y-2 sm:space-y-3">
         {#each features as feature}
           <li class="flex items-start gap-2 sm:gap-3">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            <span class="text-sm sm:text-base text-gray-700">{feature}</span>
+            <span class="text-sm sm:text-base text-white/70">{feature}</span>
           </li>
         {/each}
       </ul>

@@ -6,23 +6,23 @@
   <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="jsattler" data-color="#FFDD00" data-emoji="☕" data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff"></script>
 </svelte:head>
 
-<footer class="bg-gray-50 border-t border-gray-200 py-8 sm:py-10 md:py-12 px-4 sm:px-6">
+<footer class="border-t border-white/10 py-8 sm:py-10 md:py-12 px-4 sm:px-6">
   <div class="max-w-7xl mx-auto">
     <div class="flex flex-col lg:flex-row justify-between items-start gap-6 sm:gap-8 mb-6 sm:mb-8">
       <!-- Brand -->
       <div class="flex-1">
         <div class="flex items-center gap-2 mb-3 sm:mb-4">
           <img src="/favicon.svg" alt="BetterCapture logo" class="w-5 h-5 sm:w-6 sm:h-6" />
-          <span class="text-lg sm:text-xl font-semibold text-gray-900">BetterCapture</span>
+          <span class="text-lg sm:text-xl font-semibold text-white">BetterCapture</span>
         </div>
-        <p class="text-gray-600 text-xs sm:text-sm max-w-xs">
+        <p class="text-white/50 text-xs sm:text-sm max-w-xs">
           A native, open-source screen recorder for macOS. Free forever.
         </p>
       </div>
 
       <!-- Support Section -->
       <div class="flex-1 text-center">
-        <p class="text-gray-600 text-xs sm:text-sm mb-3">
+        <p class="text-white/50 text-xs sm:text-sm mb-3">
           Enjoying BetterCapture? Consider supporting its development.
         </p>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
@@ -42,14 +42,14 @@
       <!-- Links -->
       <div class="flex-1 flex flex-wrap gap-6 sm:gap-8 md:gap-12 justify-end">
         <div>
-          <h4 class="text-gray-900 font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Resources</h4>
+          <h4 class="text-white font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Resources</h4>
           <ul class="space-y-1.5 sm:space-y-2">
             <li>
               <a 
                 href="https://github.com/jsattler/BetterCapture/releases" 
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-gray-600 hover:text-gray-900 transition-colors text-xs sm:text-sm"
+                class="text-white/50 hover:text-white transition-colors text-xs sm:text-sm"
               >
                 Changelog
               </a>
@@ -59,7 +59,7 @@
                 href="https://github.com/jsattler/BetterCapture" 
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-gray-600 hover:text-gray-900 transition-colors text-xs sm:text-sm"
+                class="text-white/50 hover:text-white transition-colors text-xs sm:text-sm"
               >
                 GitHub
               </a>
@@ -68,20 +68,20 @@
         </div>
 
         <div>
-          <h4 class="text-gray-900 font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Legal</h4>
+          <h4 class="text-white font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Legal</h4>
           <ul class="space-y-1.5 sm:space-y-2">
             <li>
               <a 
                 href="https://github.com/jsattler/BetterCapture/blob/main/LICENSE" 
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-gray-600 hover:text-gray-900 transition-colors text-xs sm:text-sm"
+                class="text-white/50 hover:text-white transition-colors text-xs sm:text-sm"
               >
                 MIT License
               </a>
             </li>
             <li>
-              <a href="/privacy-policy" class="text-gray-600 hover:text-gray-900 transition-colors text-xs sm:text-sm">
+              <a href="/privacy-policy" class="text-white/50 hover:text-white transition-colors text-xs sm:text-sm">
                 Privacy Policy
               </a>
             </li>
@@ -91,15 +91,15 @@
     </div>
 
     <!-- Bottom -->
-    <div class="pt-6 sm:pt-8 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
-      <p class="text-gray-500 text-xs sm:text-sm text-center sm:text-left">
+    <div class="pt-6 sm:pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4">
+      <p class="text-white/40 text-xs sm:text-sm text-center sm:text-left">
         &copy; {currentYear} Joshua Sattler. Released under the MIT License.
       </p>
       <a 
         href="https://github.com/jsattler/BetterCapture" 
         target="_blank"
         rel="noopener noreferrer"
-        class="text-gray-500 hover:text-gray-700 transition-colors"
+        class="text-white/40 hover:text-white/70 transition-colors"
       >
         <span class="sr-only">GitHub</span>
         <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
