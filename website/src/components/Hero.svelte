@@ -1,6 +1,4 @@
 <script lang="ts">
-  const base = import.meta.env.BASE_URL;
-  
   let copied = $state(false);
   
   async function copyToClipboard() {
@@ -22,7 +20,7 @@
     <div class="relative w-full min-h-[70vh] sm:min-h-[75vh] md:min-h-[80vh] lg:min-h-[85vh] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 rounded-2xl sm:rounded-3xl overflow-hidden flex items-center">
       <!-- Grainy gradient background -->
       <img 
-        src="{base}hero-wallpaper-2.jpg" 
+        src="/hero-wallpaper-2.jpg" 
         alt="" 
         class="absolute inset-0 w-full h-full object-cover"
       />
@@ -88,7 +86,7 @@
           <div class="hidden lg:flex lg:col-span-2 2xl:col-span-1 items-center justify-center">
             <div class="w-full">
               <img 
-                src="{base}screenshot-basic.png" 
+                src="/screenshot-basic.png" 
                 alt="Better Capture Screenshot"
                 class="opacity-90 rounded-2xl w-full h-auto"
               />
