@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://jsattler.github.io/BetterCapture">Website</a> ·
+  <a href="https://bettercapture.app">Website</a> ·
   <a href="#installation">Installation</a> ·
   <a href="#features">Features</a> ·
   <a href="#contributing">Contributing</a>
