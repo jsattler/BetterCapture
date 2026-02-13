@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://jsattler.github.io/BetterCapture/sitemap-index.xml
+Sitemap: https://bettercapture.app/sitemap-index.xml

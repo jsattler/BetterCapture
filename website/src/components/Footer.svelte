@@ -1,6 +1,5 @@
 <script lang="ts">
   const currentYear = new Date().getFullYear();
-  const base = import.meta.env.BASE_URL;
 </script>
 
 <svelte:head>
@@ -13,7 +12,7 @@
       <!-- Brand -->
       <div class="flex-1">
         <div class="flex items-center gap-2 mb-3 sm:mb-4">
-          <img src="{base}favicon.svg" alt="BetterCapture logo" class="w-5 h-5 sm:w-6 sm:h-6" />
+          <img src="/favicon.svg" alt="BetterCapture logo" class="w-5 h-5 sm:w-6 sm:h-6" />
           <span class="text-lg sm:text-xl font-semibold text-gray-900">BetterCapture</span>
         </div>
         <p class="text-gray-600 text-xs sm:text-sm max-w-xs">
@@ -82,7 +81,7 @@
               </a>
             </li>
             <li>
-              <a href="{base}privacy-policy" class="text-gray-600 hover:text-gray-900 transition-colors text-xs sm:text-sm">
+              <a href="/privacy-policy" class="text-gray-600 hover:text-gray-900 transition-colors text-xs sm:text-sm">
                 Privacy Policy
               </a>
             </li>

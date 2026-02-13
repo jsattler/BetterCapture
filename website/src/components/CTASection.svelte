@@ -1,6 +1,5 @@
 <script lang="ts">
   let videoUrl = "https://github.com/jsattler/BetterCapture/releases/latest/download/BetterCapture.dmg";
-  const base = import.meta.env.BASE_URL;
   
   let copied = $state(false);
   
@@ -73,13 +72,13 @@
       <!-- Bottom branding section -->
       <div class="relative h-36 sm:h-48 md:h-64 lg:h-72 overflow-hidden rounded-2xl sm:rounded-3xl m-2 sm:m-3">
         <img
-          src="{base}hero-wallpaper-2.jpg"
+          src="/hero-wallpaper-2.jpg"
           alt=""
           class="w-full h-full object-cover"
         />
         <div class="absolute inset-0 flex items-center justify-center">
           <div class="flex items-center gap-2 sm:gap-3 md:gap-4">
-            <img src="{base}favicon.svg" alt="BetterCapture logo" class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16" />
+            <img src="/favicon.svg" alt="BetterCapture logo" class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16" />
             <span class="text-xl sm:text-2xl md:text-3xl lg:text-5xl font-semibold text-white">BetterCapture</span>
           </div>
         </div>

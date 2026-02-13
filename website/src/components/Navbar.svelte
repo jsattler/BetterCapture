@@ -1,22 +1,18 @@
-<script lang="ts">
-  const base = import.meta.env.BASE_URL;
-</script>
-
 <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-100">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
     <div class="flex items-center justify-between md:grid md:grid-cols-3">
       <!-- Logo/Brand -->
-      <a href="{base}">
+      <a href="/">
         <div class="flex items-center gap-2">
-          <img src="{base}bettercapture-logo.png" alt="BetterCapture logo" class="w-6 h-6" />
+          <img src="/bettercapture-logo.png" alt="BetterCapture logo" class="w-6 h-6" />
           <span class="text-lg sm:text-xl font-semibold text-gray-900">BetterCapture</span>
         </div>
       </a>
 
       <!-- Navigation Links (Center) - Hidden on mobile -->
       <div class="hidden md:flex items-center justify-center gap-6">
-        <a href="{base}#hero" class="text-gray-600 hover:text-gray-900 transition-colors text-md font-semibold">Home</a>
-        <a href="{base}#features" class="text-gray-600 hover:text-gray-900 transition-colors text-md font-semibold">Features</a>
+        <a href="/#hero" class="text-gray-600 hover:text-gray-900 transition-colors text-md font-semibold">Home</a>
+        <a href="/#features" class="text-gray-600 hover:text-gray-900 transition-colors text-md font-semibold">Features</a>
         <a 
           href="https://github.com/jsattler/BetterCapture/milestones" 
           target="_blank"
