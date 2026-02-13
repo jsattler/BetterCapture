@@ -33,6 +33,9 @@ final class RecorderViewModel {
     /// The source rectangle for area selection (in display points, top-left origin)
     private(set) var selectedSourceRect: CGRect?
 
+    /// The selected area in screen coordinates (bottom-left origin), used for the border frame overlay
+    private var selectedScreenRect: CGRect?
+
     /// Whether the current selection is an area selection (as opposed to a picker selection)
     var isAreaSelection: Bool {
         selectedSourceRect != nil
@@ -80,6 +83,7 @@ final class RecorderViewModel {
     private var recordingStartTime: Date?
     private var videoSize: CGSize = .zero
     private let areaSelectionOverlay = AreaSelectionOverlay()
+    private let selectionBorderFrame = SelectionBorderFrame()
 
     // MARK: - Initialization
 
@@ -119,10 +123,16 @@ final class RecorderViewModel {
 
     /// Presents the area selection overlay on the display under the cursor
     func presentAreaSelection() async {
+        // Dismiss any existing border frame so it doesn't overlap the selection overlay
+        selectionBorderFrame.dismiss()
+
         guard let result = await areaSelectionOverlay.present() else {
             logger.info("Area selection cancelled")
             return
         }
+
+        // Show the border frame immediately so the user sees the selection outline
+        selectionBorderFrame.show(screenRect: result.screenRect)
 
         // Find the corresponding SCDisplay for the selected screen
         do {
@@ -167,6 +177,7 @@ final class RecorderViewModel {
 
             // Store the area selection and set the filter on the capture engine
             selectedSourceRect = sourceRect
+            selectedScreenRect = result.screenRect
             selectedContentFilter = filter
             try await captureEngine.updateFilter(filter)
 
@@ -176,6 +187,7 @@ final class RecorderViewModel {
             await previewService.setContentFilter(filter, sourceRect: sourceRect)
 
         } catch {
+            selectionBorderFrame.dismiss()
             logger.error("Failed to get shareable content for area selection: \(error.localizedDescription)")
         }
     }
@@ -222,6 +234,7 @@ final class RecorderViewModel {
         } catch {
             state = .idle
             lastError = error
+            selectionBorderFrame.dismiss()
             logger.error("Failed to start recording: \(error.localizedDescription)")
         }
     }
@@ -232,6 +245,7 @@ final class RecorderViewModel {
 
         state = .stopping
         stopTimer()
+        selectionBorderFrame.dismiss()
 
         do {
             // Stop capture first
@@ -263,6 +277,16 @@ final class RecorderViewModel {
     /// Clears the current content selection
     func clearSelection() {
         captureEngine.clearSelection()
+    }
+
+    /// Resets the area selection, removing the border frame and clearing state
+    func resetAreaSelection() async {
+        selectedSourceRect = nil
+        selectedScreenRect = nil
+        selectedContentFilter = nil
+        selectionBorderFrame.dismiss()
+        await previewService.stopPreview()
+        previewService.clearPreview()
     }
 
     /// Starts the live preview stream (call when menu bar window opens)
@@ -336,6 +360,8 @@ extension RecorderViewModel: CaptureEngineDelegate {
     func captureEngine(_ engine: CaptureEngine, didUpdateFilter filter: SCContentFilter) {
         // Clear any area selection (picker and area selections are mutually exclusive)
         selectedSourceRect = nil
+        selectedScreenRect = nil
+        selectionBorderFrame.dismiss()
 
         selectedContentFilter = filter
         logger.info("Content filter updated")

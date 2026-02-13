@@ -251,6 +251,8 @@ final class AreaSelectionView: NSView {
 
     override var acceptsFirstResponder: Bool { true }
 
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
     override func keyDown(with event: NSEvent) {
         switch event.keyCode {
         case 53: // Escape
@@ -265,6 +267,9 @@ final class AreaSelectionView: NSView {
     // MARK: - Mouse Events
 
     override func mouseDown(with event: NSEvent) {
+        // Ensure this panel becomes key so keyboard events route here
+        window?.makeKey()
+
         let point = convert(event.locationInWindow, from: nil)
 
         // Double-click inside selection to confirm

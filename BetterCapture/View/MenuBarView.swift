@@ -81,6 +81,21 @@ struct MenuBarView: View {
                 .onAppear {
                     currentPreview = viewModel.previewService.previewImage
                 }
+
+                Button {
+                    Task {
+                        await viewModel.resetAreaSelection()
+                    }
+                } label: {
+                    Text("Reset Selection")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .background(.gray.opacity(0.15), in: .rect(cornerRadius: 6))
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 12)
             }
 
             MenuBarDivider()
@@ -276,7 +291,7 @@ struct ContentSelectionButton: View {
     }
 
     private var buttonLabel: String {
-        hasActiveSelection ? "Change \(mode.label)..." : "\(mode.label)..."
+        hasActiveSelection ? "Change \(mode.label.split(separator: " ").last, default: "Content")..." : "\(mode.label)..."
     }
 
     var body: some View {
