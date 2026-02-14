@@ -1,6 +1,15 @@
 <script lang="ts">
   let copied = $state(false);
-  
+  let screenshotVisible = $state(false);
+
+  $effect(() => {
+    // Short delay so the animation is visible after paint
+    const timeout = setTimeout(() => {
+      screenshotVisible = true;
+    }, 400);
+    return () => clearTimeout(timeout);
+  });
+
   async function copyToClipboard() {
     try {
       await navigator.clipboard.writeText('brew install jsattler/tap/bettercapture');
@@ -73,7 +82,7 @@
           <!-- Glow behind the image -->
           <div class="absolute inset-0 -z-10 translate-y-4 scale-95 rounded-3xl bg-black/40 blur-2xl"></div>
           <!-- 3D perspective container -->
-          <div class="screenshot-perspective">
+          <div class="screenshot-perspective screenshot-fade" class:screenshot-fade-visible={screenshotVisible}>
             <img 
               src="/screenshot-basic.png" 
               alt="Better Capture Screenshot"
@@ -90,6 +99,17 @@
   .screenshot-perspective {
     perspective: 800px;
     transform-style: preserve-3d;
+  }
+
+  .screenshot-fade {
+    opacity: 0;
+    transform: translateY(80px);
+    transition: opacity 1.2s ease-out, transform 1.2s ease-out;
+  }
+
+  .screenshot-fade-visible {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .screenshot-tilt {
