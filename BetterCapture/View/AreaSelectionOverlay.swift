@@ -485,13 +485,13 @@ final class AreaSelectionView: NSView {
 
         let confirm = makeActionButton(
             title: "Confirm",
-            color: .systemBlue,
+            textColor: .systemGreen,
             action: #selector(confirmButtonClicked)
         )
 
         let cancel = makeActionButton(
             title: "Cancel",
-            color: .systemRed,
+            textColor: .systemRed,
             action: #selector(cancelButtonClicked)
         )
 
@@ -506,9 +506,9 @@ final class AreaSelectionView: NSView {
         NSLayoutConstraint.activate([
             confirm.topAnchor.constraint(equalTo: container.topAnchor),
             confirm.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            confirm.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            cancel.topAnchor.constraint(equalTo: container.topAnchor),
-            cancel.leadingAnchor.constraint(equalTo: confirm.trailingAnchor, constant: 12),
+            confirm.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            cancel.topAnchor.constraint(equalTo: confirm.bottomAnchor, constant: 8),
+            cancel.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             cancel.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             cancel.bottomAnchor.constraint(equalTo: container.bottomAnchor),
         ])
@@ -542,15 +542,15 @@ final class AreaSelectionView: NSView {
         )
     }
 
-    private func makeActionButton(title: String, color: NSColor, action: Selector) -> NSButton {
+    private func makeActionButton(title: String, textColor: NSColor, action: Selector) -> NSButton {
         let button = NSButton(title: title, target: self, action: action)
         button.isBordered = false
         button.wantsLayer = true
-        button.layer?.backgroundColor = color.withAlphaComponent(0.7).cgColor
-        button.layer?.cornerRadius = 18
-        button.contentTintColor = .white
-        button.font = .systemFont(ofSize: 14, weight: .medium)
-        button.widthAnchor.constraint(greaterThanOrEqualToConstant: 100).isActive = true
+        button.layer?.backgroundColor = NSColor.controlBackgroundColor.withAlphaComponent(0.8).cgColor
+        button.layer?.cornerRadius = 6
+        button.contentTintColor = textColor
+        button.font = .systemFont(ofSize: 14, weight: .regular)
+        button.widthAnchor.constraint(greaterThanOrEqualToConstant: 120).isActive = true
         button.heightAnchor.constraint(equalToConstant: 36).isActive = true
         return button
     }

@@ -19,8 +19,11 @@ final class SelectionBorderFrame {
     func show(screenRect: CGRect) {
         dismiss()
 
+        let expansion: CGFloat = 8
+        let expandedRect = screenRect.insetBy(dx: -expansion, dy: -expansion)
+
         let panel = NSPanel(
-            contentRect: screenRect,
+            contentRect: expandedRect,
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -34,7 +37,7 @@ final class SelectionBorderFrame {
         panel.ignoresMouseEvents = true
         panel.isReleasedWhenClosed = false
 
-        let borderView = SelectionBorderView(frame: NSRect(origin: .zero, size: screenRect.size))
+        let borderView = SelectionBorderView(frame: NSRect(origin: .zero, size: expandedRect.size))
         panel.contentView = borderView
         panel.orderFront(nil)
 
@@ -54,20 +57,22 @@ final class SelectionBorderFrame {
 /// Draws only a dashed rectangular border, nothing else.
 private final class SelectionBorderView: NSView {
 
+    private let expansion: CGFloat = 8
+
     override func draw(_ dirtyRect: NSRect) {
         guard let context = NSGraphicsContext.current?.cgContext else { return }
 
-        let insetRect = bounds.insetBy(dx: 2, dy: 2)
+        let borderRect = bounds.insetBy(dx: expansion - 2, dy: expansion - 2)
 
         // Black outline underneath for contrast on light backgrounds
         context.setStrokeColor(NSColor.black.withAlphaComponent(0.6).cgColor)
-        context.setLineWidth(3)
-        context.stroke(insetRect)
+        context.setLineWidth(2)
+        context.stroke(borderRect)
 
         // White dashed stroke on top
         context.setStrokeColor(NSColor.white.cgColor)
-        context.setLineWidth(1.5)
+        context.setLineWidth(1)
         context.setLineDash(phase: 0, lengths: [6, 4])
-        context.stroke(insetRect)
+        context.stroke(borderRect)
     }
 }
