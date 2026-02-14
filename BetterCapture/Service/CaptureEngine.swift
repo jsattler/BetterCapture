@@ -95,7 +95,8 @@ final class CaptureEngine: NSObject {
     /// - Parameters:
     ///   - settings: The settings store containing capture configuration
     ///   - videoSize: The dimensions for the captured video
-    func startCapture(with settings: SettingsStore, videoSize: CGSize) async throws {
+    ///   - sourceRect: Optional rectangle for area selection (display points, top-left origin)
+    func startCapture(with settings: SettingsStore, videoSize: CGSize, sourceRect: CGRect? = nil) async throws {
         guard let filter = contentFilter else {
             throw CaptureError.noContentFilterSelected
         }
@@ -128,7 +129,7 @@ final class CaptureEngine: NSObject {
         let filteredContent = try await contentFilterService.applySettings(to: filter, settings: settings)
         logger.info("Content filter applied, creating stream...")
 
-        let streamConfig = createStreamConfiguration(from: settings, contentSize: videoSize)
+        let streamConfig = createStreamConfiguration(from: settings, contentSize: videoSize, sourceRect: sourceRect)
 
         stream = SCStream(filter: filteredContent, configuration: streamConfig, delegate: self)
 
@@ -182,12 +183,22 @@ final class CaptureEngine: NSObject {
     // MARK: - Configuration
 
     /// Creates an SCStreamConfiguration from user settings
-    private func createStreamConfiguration(from settings: SettingsStore, contentSize: CGSize) -> SCStreamConfiguration {
+    /// - Parameters:
+    ///   - settings: The settings store containing capture configuration
+    ///   - contentSize: The output dimensions for the captured video
+    ///   - sourceRect: Optional rectangle for area selection (display points, top-left origin)
+    private func createStreamConfiguration(from settings: SettingsStore, contentSize: CGSize, sourceRect: CGRect? = nil) -> SCStreamConfiguration {
         let config = SCStreamConfiguration()
 
         // Set output dimensions - required for proper capture
         config.width = Int(contentSize.width)
         config.height = Int(contentSize.height)
+
+        // Set source rect for area selection (only works with display captures)
+        if let sourceRect {
+            config.sourceRect = sourceRect
+            logger.info("Source rect set: \(sourceRect.origin.x),\(sourceRect.origin.y) \(sourceRect.width)x\(sourceRect.height)")
+        }
 
         // Frame rate - native uses display sync (1/120 timescale)
         if settings.frameRate == .native {

@@ -29,6 +29,7 @@ final class PreviewService: NSObject {
 
     private var stream: SCStream?
     private var currentFilter: SCContentFilter?
+    private var currentSourceRect: CGRect?
     private let previewQueue = DispatchQueue(label: "com.bettercapture.previewQueue", qos: .userInteractive)
 
     private let logger = Logger(
@@ -43,19 +44,29 @@ final class PreviewService: NSObject {
     // MARK: - Public Methods
 
     /// Updates the content filter and captures a static thumbnail
-    /// - Parameter filter: The content filter to use
-    func setContentFilter(_ filter: SCContentFilter) async {
+    /// - Parameters:
+    ///   - filter: The content filter to use
+    ///   - sourceRect: Optional rectangle for area selection (display points, top-left origin)
+    func setContentFilter(_ filter: SCContentFilter, sourceRect: CGRect? = nil) async {
         currentFilter = filter
-        await captureStaticThumbnail(for: filter)
+        currentSourceRect = sourceRect
+        await captureStaticThumbnail(for: filter, sourceRect: sourceRect)
     }
 
     /// Captures a single static frame as a thumbnail (no continuous streaming)
-    private func captureStaticThumbnail(for filter: SCContentFilter) async {
+    /// - Parameters:
+    ///   - filter: The content filter to capture
+    ///   - sourceRect: Optional rectangle for area selection (display points, top-left origin)
+    private func captureStaticThumbnail(for filter: SCContentFilter, sourceRect: CGRect? = nil) async {
         let config = SCStreamConfiguration()
         config.width = previewWidth
         config.height = previewHeight
         config.pixelFormat = kCVPixelFormatType_32BGRA
         config.showsCursor = true
+
+        if let sourceRect {
+            config.sourceRect = sourceRect
+        }
 
         do {
             let image = try await SCScreenshotManager.captureImage(
@@ -96,28 +107,6 @@ final class PreviewService: NSObject {
     /// Stops the preview stream
     func stopPreview() async {
         await stopStream()
-    }
-
-    /// Starts or updates the preview stream for the given content filter
-    /// - Parameter filter: The content filter to capture
-    func captureSnapshot(for filter: SCContentFilter) async {
-        currentFilter = filter
-
-        // If already streaming, update the filter
-        if let stream, isCapturing {
-            do {
-                try await stream.updateContentFilter(filter)
-                logger.info("Updated preview stream filter")
-            } catch {
-                logger.error("Failed to update preview filter: \(error.localizedDescription)")
-                await stopStream()
-                await startStream(with: filter)
-            }
-            return
-        }
-
-        // Otherwise start a new stream
-        await startStream(with: filter)
     }
 
     /// Starts the preview stream
@@ -197,6 +186,11 @@ final class PreviewService: NSObject {
 
         // Show cursor in preview
         config.showsCursor = true
+
+        // Apply source rect for area selection
+        if let sourceRect = currentSourceRect {
+            config.sourceRect = sourceRect
+        }
 
         return config
     }
