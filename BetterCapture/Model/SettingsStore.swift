@@ -294,6 +294,33 @@ final class SettingsStore {
         }
     }
 
+    // MARK: - Presenter Overlay Settings
+
+    var presenterOverlayEnabled: Bool {
+        get {
+            access(keyPath: \.presenterOverlayEnabled)
+            return UserDefaults.standard.bool(forKey: "presenterOverlayEnabled")
+        }
+        set {
+            withMutation(keyPath: \.presenterOverlayEnabled) {
+                UserDefaults.standard.set(newValue, forKey: "presenterOverlayEnabled")
+            }
+        }
+    }
+
+    /// The selected camera device ID for Presenter Overlay, or `nil` for the system default.
+    var selectedCameraID: String? {
+        get {
+            access(keyPath: \.selectedCameraID)
+            return UserDefaults.standard.string(forKey: "selectedCameraID")
+        }
+        set {
+            withMutation(keyPath: \.selectedCameraID) {
+                UserDefaults.standard.set(newValue, forKey: "selectedCameraID")
+            }
+        }
+    }
+
     // MARK: - Content Filter Settings
 
     var showCursor: Bool {

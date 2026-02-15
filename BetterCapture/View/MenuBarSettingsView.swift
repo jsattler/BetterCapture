@@ -529,11 +529,124 @@ struct AudioSettingsSection: View {
     }
 }
 
+// MARK: - Camera Expandable Picker
+
+/// A camera picker with device-style rows, matching the microphone picker pattern
+struct CameraExpandablePicker: View {
+    @Binding var selectedID: String?
+    let devices: [CameraDevice]
+    @State private var isExpanded = false
+    @State private var isHovered = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header row
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack {
+                    Text("Camera")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Text(currentLabel)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(isHovered ? .gray.opacity(0.1) : .clear)
+                    .padding(.horizontal, 4)
+            )
+            .onHover { hovering in
+                isHovered = hovering
+            }
+
+            // Expanded device options
+            if isExpanded {
+                VStack(spacing: 0) {
+                    // System Default option
+                    DeviceRow(
+                        name: "System Default",
+                        icon: "camera",
+                        isSelected: selectedID == nil
+                    ) {
+                        selectedID = nil
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isExpanded = false
+                        }
+                    }
+
+                    // Available devices
+                    ForEach(devices) { device in
+                        DeviceRow(
+                            name: device.name,
+                            icon: "camera",
+                            isSelected: selectedID == device.id
+                        ) {
+                            selectedID = device.id
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                isExpanded = false
+                            }
+                        }
+                    }
+                }
+                .padding(.leading, 12)
+                .background(.quaternary.opacity(0.3))
+            }
+        }
+    }
+
+    private var currentLabel: String {
+        if let id = selectedID, let device = devices.first(where: { $0.id == id }) {
+            return device.name
+        }
+        return "System Default"
+    }
+}
+
+// MARK: - Presenter Overlay Settings Section
+
+/// Presenter Overlay toggle and camera picker
+struct PresenterOverlaySettingsSection: View {
+    @Bindable var settings: SettingsStore
+    let cameraDeviceService: CameraDeviceService
+
+    var body: some View {
+        VStack(spacing: 0) {
+            SectionDivider()
+
+            SectionHeader(title: "Camera")
+
+            MenuBarToggle(name: "Presenter Overlay", isOn: $settings.presenterOverlayEnabled)
+
+            if settings.presenterOverlayEnabled {
+                CameraExpandablePicker(
+                    selectedID: $settings.selectedCameraID,
+                    devices: cameraDeviceService.availableDevices
+                )
+            }
+        }
+    }
+}
+
 // MARK: - Preview
 
 #Preview {
     VStack(spacing: 0) {
         VideoSettingsSection(settings: SettingsStore())
+        PresenterOverlaySettingsSection(settings: SettingsStore(), cameraDeviceService: CameraDeviceService())
         AudioSettingsSection(settings: SettingsStore(), audioDeviceService: AudioDeviceService())
     }
     .frame(width: 320)

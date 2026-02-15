@@ -65,15 +65,20 @@ final class RecorderViewModel {
         }
     }
 
+    /// Whether Presenter Overlay is currently active (camera composited into stream)
+    private(set) var isPresenterOverlayActive = false
+
     // MARK: - Dependencies
 
     let settings: SettingsStore
     let audioDeviceService: AudioDeviceService
+    let cameraDeviceService: CameraDeviceService
     let previewService: PreviewService
     let notificationService: NotificationService
     let permissionService: PermissionService
     private let captureEngine: CaptureEngine
     private let assetWriter: AssetWriter
+    private let cameraSession = CameraSession()
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "BetterCapture", category: "RecorderViewModel")
 
@@ -90,6 +95,7 @@ final class RecorderViewModel {
     init() {
         self.settings = SettingsStore()
         self.audioDeviceService = AudioDeviceService()
+        self.cameraDeviceService = CameraDeviceService()
         self.previewService = PreviewService()
         self.notificationService = NotificationService()
         self.permissionService = PermissionService()
@@ -222,6 +228,11 @@ final class RecorderViewModel {
             try assetWriter.startWriting()
             logger.info("AssetWriter ready")
 
+            // Start camera for Presenter Overlay before capture so the system detects it
+            if settings.presenterOverlayEnabled {
+                await cameraSession.start(deviceID: settings.selectedCameraID)
+            }
+
             // Start capture with the calculated video size
             logger.info("Starting capture engine...")
             try await captureEngine.startCapture(with: settings, videoSize: videoSize, sourceRect: selectedSourceRect)
@@ -234,6 +245,7 @@ final class RecorderViewModel {
         } catch {
             state = .idle
             lastError = error
+            cameraSession.stop()
             selectionBorderFrame.dismiss()
             logger.error("Failed to start recording: \(error.localizedDescription)")
         }
@@ -248,8 +260,10 @@ final class RecorderViewModel {
         selectionBorderFrame.dismiss()
 
         do {
-            // Stop capture first
+            // Stop capture and camera session
             try await captureEngine.stopCapture()
+            cameraSession.stop()
+            isPresenterOverlayActive = false
 
             // Finalize file
             let outputURL = try await assetWriter.finishWriting()
@@ -397,6 +411,11 @@ extension RecorderViewModel: CaptureEngineDelegate {
                 }
             }
         }
+    }
+
+    func captureEngine(_ engine: CaptureEngine, presenterOverlayDidChange isActive: Bool) {
+        isPresenterOverlayActive = isActive
+        logger.info("Presenter Overlay \(isActive ? "activated" : "deactivated")")
     }
 
     func captureEngineDidCancelPicker(_ engine: CaptureEngine) {
