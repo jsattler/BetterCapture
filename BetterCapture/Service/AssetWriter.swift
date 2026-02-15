@@ -31,6 +31,11 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     private var hasStartedSession = false
     private var sessionStartTime: CMTime = .zero
 
+    /// Last appended video presentation time — used to enforce monotonically
+    /// increasing timestamps and protect the writer from timing glitches that
+    /// occur when Presenter Overlay composites the camera into the stream.
+    private var lastVideoPresentationTime: CMTime = .invalid
+
     // Lock for thread-safe access to writer state
     private let lock = OSAllocatedUnfairLock()
 
@@ -109,6 +114,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
         outputURL = url
         hasStartedSession = false
         sessionStartTime = .zero
+        lastVideoPresentationTime = .invalid
         frameCount = 0
 
         logger.info("AssetWriter configured for output: \(url.lastPathComponent)")
@@ -166,6 +172,13 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                 sessionStartTime = presentationTime
                 hasStartedSession = true
                 logger.info("Session started at time: \(presentationTime.seconds)")
+            } else {
+                // Guard against non-monotonic timestamps. Presenter Overlay can
+                // cause timing glitches when compositing the camera into the
+                // stream; a single bad timestamp permanently fails the writer.
+                if lastVideoPresentationTime.isValid && presentationTime <= lastVideoPresentationTime {
+                    return
+                }
             }
 
             // Extract pixel buffer from sample buffer
@@ -176,6 +189,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
 
             // Append using the pixel buffer adaptor
             if adaptor.append(pixelBuffer, withPresentationTime: presentationTime) {
+                lastVideoPresentationTime = presentationTime
                 frameCount += 1
                 if frameCount == 1 {
                     logger.info("First video frame appended successfully")
@@ -287,6 +301,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
 
             isWriting = false
             hasStartedSession = false
+            lastVideoPresentationTime = .invalid
 
             logger.info("AssetWriter finished writing \(self.frameCount) frames to: \(url.lastPathComponent)")
             frameCount = 0
@@ -308,6 +323,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             assetWriter?.cancelWriting()
             isWriting = false
             hasStartedSession = false
+            lastVideoPresentationTime = .invalid
             frameCount = 0
 
             // Clean up temp file if it exists

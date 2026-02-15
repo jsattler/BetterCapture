@@ -6,6 +6,8 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>BetterCapture needs access to your microphone to record audio alongside screen captures.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>BetterCapture needs access to your camera to enable Presenter Overlay during screen recordings.</string>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>BetterCapture needs access to screen recording to capture your screen content.</string>
 	<key>SUFeedURL</key>

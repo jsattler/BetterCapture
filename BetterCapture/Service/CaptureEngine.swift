@@ -15,6 +15,7 @@ protocol CaptureEngineDelegate: AnyObject {
     func captureEngine(_ engine: CaptureEngine, didUpdateFilter filter: SCContentFilter)
     func captureEngine(_ engine: CaptureEngine, didStopWithError error: Error?)
     func captureEngineDidCancelPicker(_ engine: CaptureEngine)
+    func captureEngine(_ engine: CaptureEngine, presenterOverlayDidChange isActive: Bool)
 }
 
 /// Protocol for receiving sample buffers - called synchronously on capture queue
@@ -38,6 +39,7 @@ final class CaptureEngine: NSObject {
 
     private(set) var contentFilter: SCContentFilter?
     private(set) var isCapturing = false
+    private(set) var isPresenterOverlayActive = false
 
     private var stream: SCStream?
     private let picker = SCContentSharingPicker.shared
@@ -166,6 +168,7 @@ final class CaptureEngine: NSObject {
         try await stream.stopCapture()
         self.stream = nil
         isCapturing = false
+        isPresenterOverlayActive = false
 
         logger.info("Capture stopped successfully")
     }
@@ -219,6 +222,11 @@ final class CaptureEngine: NSObject {
         config.captureMicrophone = settings.captureMicrophone
         if let microphoneID = settings.selectedMicrophoneID {
             config.microphoneCaptureDeviceID = microphoneID
+        }
+
+        // Presenter Overlay: always show the alert so the user knows overlay is available
+        if settings.presenterOverlayEnabled {
+            config.presenterOverlayPrivacyAlertSetting = .always
         }
 
         // Configure pixel format and dynamic range based on HDR setting
@@ -296,6 +304,22 @@ extension CaptureEngine: SCStreamDelegate {
             self.stream = nil
             self.delegate?.captureEngine(self, didStopWithError: error)
             logger.error("Stream stopped with error: \(error.localizedDescription)")
+        }
+    }
+
+    nonisolated func outputVideoEffectDidStart(for stream: SCStream) {
+        Task { @MainActor in
+            self.isPresenterOverlayActive = true
+            self.delegate?.captureEngine(self, presenterOverlayDidChange: true)
+            logger.info("Presenter Overlay started")
+        }
+    }
+
+    nonisolated func outputVideoEffectDidStop(for stream: SCStream) {
+        Task { @MainActor in
+            self.isPresenterOverlayActive = false
+            self.delegate?.captureEngine(self, presenterOverlayDidChange: false)
+            logger.info("Presenter Overlay stopped")
         }
     }
 }
