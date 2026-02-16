@@ -12,7 +12,8 @@
         "Follows Apple's Human Interface Guidelines"
       ],
       imageUrl: "/grainy-gradient-feat-1.jpg",
-      screenshotUrl: "/screenshot-basic.png"
+      screenshotUrl: "/screenshot-basic.png",
+      screenshotAlt: "BetterCapture interface showing the main recording controls and menu bar integration on macOS."
     },
     {
       title: "Professional Recording",
@@ -24,7 +25,7 @@
         "Content filtering to exclude specific windows"
       ],
       imageUrl: "/grainy-gradient-feat-2.jpg",
-      badges: ["ProRes 4444", "HEVC", "H.264"]
+      alt: "Professional recording codecs supported by BetterCapture: ProRes 4444, HEVC, and H.264"
     },
     {
       title: "Privacy-First",
@@ -36,7 +37,7 @@
         "Open source so you can verify our claims"
       ],
       imageUrl: "/grainy-gradient-feat-3.jpg",
-      badges: ["No Tracking", "No Analytics", "100% Local"]
+      alt: "BetterCapture privacy features: no tracking, no analytics, all recordings stored locally"
     },
     {
       title: "Open Source & Free",
@@ -48,7 +49,7 @@
         "Contribute features or report bugs on GitHub"
       ],
       imageUrl: "/grainy-gradient-feat-4.jpg",
-      badges: ["MIT License", "100% Free", "Open Source"]
+      alt: "BetterCapture is MIT licensed, 100% free, and open source"
     }
   ];
 </script>
@@ -58,7 +59,7 @@
     <div class="text-center mb-10 sm:mb-12 md:mb-16">
       <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4">Simple, Powerful, Private</h2>
       <p class="text-base sm:text-lg md:text-xl text-white/60 max-w-2xl mx-auto">
-        Screen recording that respects your time and your privacy
+        Professional screen recording for macOS that respects your time and your privacy
       </p>
     </div>
 

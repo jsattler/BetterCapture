@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+	title="Privacy Policy - BetterCapture | Free Screen Recorder for Mac"
+	description="BetterCapture's privacy policy. We collect zero data, have no tracking, no analytics, and no cloud uploads. Your recordings stay on your Mac."
+	canonicalUrl="https://bettercapture.app/privacy-policy"
+	robots="index, follow"
+>
+	<main class="pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 px-4 sm:px-6">
+		<article class="max-w-3xl mx-auto prose prose-invert prose-sm sm:prose-base">
+			<h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-6 sm:mb-8">Privacy Policy</h1>
+			<p class="text-white/50 text-sm mb-8">Last updated: February 2026</p>
+
+			<section class="space-y-6 text-white/70">
+				<div>
+					<h2 class="text-xl sm:text-2xl font-semibold text-white mb-3">Overview</h2>
+					<p>
+						BetterCapture is a free, open-source screen recorder for macOS. Privacy is a core principle of this project. 
+						BetterCapture does not collect, store, transmit, or process any personal data whatsoever.
+					</p>
+				</div>
+
+				<div>
+					<h2 class="text-xl sm:text-2xl font-semibold text-white mb-3">Data Collection</h2>
+					<p>BetterCapture collects <strong class="text-white">no data</strong>. Specifically:</p>
+					<ul class="list-disc list-inside space-y-2 mt-3">
+						<li>No personal information is collected</li>
+						<li>No usage analytics or telemetry</li>
+						<li>No crash reports are sent</li>
+						<li>No cookies or tracking technologies</li>
+						<li>No third-party analytics services</li>
+						<li>No account creation required</li>
+					</ul>
+				</div>
+
+			<div>
+				<h2 class="text-xl sm:text-2xl font-semibold text-white mb-3">Your Recordings</h2>
+				<p>
+					All screen recordings created with BetterCapture are stored locally on your Mac in the location you choose. 
+					You have full control over what happens to your recordings after they are saved.
+				</p>
+			</div>
+
+			<div>
+				<h2 class="text-xl sm:text-2xl font-semibold text-white mb-3">Network Activity</h2>
+				<p>
+					BetterCapture uses Sparkle for automatic updates. Sparkle periodically checks for new versions by 
+					fetching update information from GitHub. This check does not include any personal information or 
+					usage data. Update checks can be disabled in the app's preferences.
+				</p>
+			</div>
+
+			<div>
+				<h2 class="text-xl sm:text-2xl font-semibold text-white mb-3">macOS Permissions</h2>
+				<p>
+					BetterCapture requests the following macOS permissions to function:
+				</p>
+				<ul class="list-disc list-inside space-y-2 mt-3">
+					<li><strong class="text-white">Screen Recording</strong> - Required to capture your screen content</li>
+					<li><strong class="text-white">Microphone</strong> - Optional, only if you choose to record microphone audio</li>
+					<li><strong class="text-white">Camera</strong> - Optional, only if you choose to use the presenter overlay feature</li>
+				</ul>
+				<p class="mt-3">
+					These permissions are managed entirely by macOS and can be revoked at any time in System Settings.
+				</p>
+			</div>
+
+				<div>
+					<h2 class="text-xl sm:text-2xl font-semibold text-white mb-3">This Website</h2>
+					<p>
+						The BetterCapture website (bettercapture.app) does not use cookies, analytics, or any tracking technologies. 
+						No visitor data is collected or processed. The website is hosted on GitHub Pages.
+					</p>
+				</div>
+
+				<div>
+					<h2 class="text-xl sm:text-2xl font-semibold text-white mb-3">Open Source Verification</h2>
+					<p>
+						BetterCapture is fully open source under the MIT license. You can verify all privacy claims by reviewing the 
+						source code on <a href="https://github.com/jsattler/BetterCapture" target="_blank" rel="noopener noreferrer" class="text-white underline hover:text-white/80">GitHub</a>.
+					</p>
+				</div>
+
+				<div>
+					<h2 class="text-xl sm:text-2xl font-semibold text-white mb-3">Contact</h2>
+					<p>
+						If you have questions about this privacy policy, you can open an issue on the 
+						<a href="https://github.com/jsattler/BetterCapture/issues" target="_blank" rel="noopener noreferrer" class="text-white underline hover:text-white/80">GitHub repository</a>.
+					</p>
+				</div>
+			</section>
+		</article>
+	</main>
+</BaseLayout>

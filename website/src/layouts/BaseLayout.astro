@@ -49,13 +49,14 @@ const {
 		<meta property="og:image:width" content="1200" />
 		<meta property="og:image:height" content="630" />
 		<meta property="og:site_name" content="BetterCapture" />
+		<meta property="og:locale" content="en_US" />
 
 		<!-- Twitter -->
-		<meta property="twitter:card" content="summary_large_image" />
-		{canonicalUrl && <meta property="twitter:url" content={canonicalUrl} />}
-		<meta property="twitter:title" content={title} />
-		<meta property="twitter:description" content={description} />
-		<meta property="twitter:image" content={ogImage} />
+		<meta name="twitter:card" content="summary_large_image" />
+		{canonicalUrl && <meta name="twitter:url" content={canonicalUrl} />}
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImage} />
 
 		<!-- Favicon -->
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -64,9 +65,6 @@ const {
 		<!-- Theme Color -->
 		<meta name="theme-color" content="#000000" />
 		<meta name="color-scheme" content="dark" />
-
-		<!-- Performance Hints -->
-		<link rel="dns-prefetch" href="https://fonts.googleapis.com" />
 
 		<!-- Structured Data (JSON-LD) -->
 		{structuredData.map((data) => (

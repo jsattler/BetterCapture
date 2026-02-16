@@ -24,7 +24,7 @@
           Ready to Start Recording?
         </h2>
         <p class="text-base sm:text-lg md:text-xl text-white/60 mb-6 sm:mb-8 md:mb-10 max-w-2xl mx-auto">
-          Install BetterCapture and experience screen recording the way it should be. Free, fast, and private.
+          Download BetterCapture for free and start recording your Mac screen with system audio, ProRes support, and zero watermarks. No sign-up required.
         </p>
         
         <!-- Installation section -->
