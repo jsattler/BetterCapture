@@ -29,6 +29,7 @@ final class NotificationService: NSObject {
 
     // MARK: - Properties
 
+    private let settings: SettingsStore
     private let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "BetterCapture",
         category: "NotificationService"
@@ -36,7 +37,8 @@ final class NotificationService: NSObject {
 
     // MARK: - Initialization
 
-    override init() {
+    init(settings: SettingsStore) {
+        self.settings = settings
         super.init()
         setupNotificationDelegate()
         registerNotificationCategories()
@@ -183,6 +185,8 @@ final class NotificationService: NSObject {
     // MARK: - Private Methods
 
     private func openFolderInFinder(path: String) {
+        _ = settings.startAccessingOutputDirectory()
+        defer { settings.stopAccessingOutputDirectory() }
         let url = URL(filePath: path)
         NSWorkspace.shared.open(url)
     }
