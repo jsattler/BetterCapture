@@ -217,7 +217,7 @@ elem = ET.SubElement(item, f"{{{SPARKLE_NS}}}shortVersionString")
 elem.text = version
 
 elem = ET.SubElement(item, f"{{{SPARKLE_NS}}}minimumSystemVersion")
-elem.text = "26.0"
+elem.text = "15.2"
 
 if release_url:
     elem = ET.SubElement(item, f"{{{SPARKLE_NS}}}fullReleaseNotesLink")
