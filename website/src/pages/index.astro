@@ -11,8 +11,9 @@ const structuredData = [
 		"name": "BetterCapture",
 		"description": "A native, open-source screen recorder for macOS. Built with SwiftUI, free forever, and privacy-focused. Record with ProRes 4444, HEVC, or H.264 codecs with professional features.",
 		"applicationCategory": "MultimediaApplication",
-		"operatingSystem": "macOS",
+		"operatingSystem": "macOS 15.2+",
 		"url": "https://bettercapture.app",
+		"downloadUrl": "https://github.com/jsattler/BetterCapture/releases/latest",
 		"softwareVersion": "1.0",
 		"offers": {
 			"@type": "Offer",
@@ -23,18 +24,15 @@ const structuredData = [
 		},
 		"author": {
 			"@type": "Person",
-			"name": "Joshua Sattler"
+			"name": "Joshua Sattler",
+			"url": "https://github.com/jsattler"
 		},
 		"creator": {
 			"@type": "Person",
-			"name": "Joshua Sattler"
+			"name": "Joshua Sattler",
+			"url": "https://github.com/jsattler"
 		},
 		"license": "https://opensource.org/licenses/MIT",
-		"aggregateRating": {
-			"@type": "AggregateRating",
-			"ratingValue": "5",
-			"reviewCount": "1"
-		},
 		"screenshot": "https://bettercapture.app/screenshot-basic.png",
 		"featureList": [
 			"ProRes 4444, HEVC, and H.264 codec support",
@@ -53,24 +51,79 @@ const structuredData = [
 		"@type": "WebSite",
 		"name": "BetterCapture",
 		"url": "https://bettercapture.app",
-		"description": "Native screen recorder for macOS - Simple, Powerful, Private",
+		"description": "Free, native screen recorder for macOS with ProRes support, system audio recording, and no watermarks.",
 		"publisher": {
 			"@type": "Person",
-			"name": "Joshua Sattler"
+			"name": "Joshua Sattler",
+			"url": "https://github.com/jsattler"
 		}
+	},
+	{
+		"@context": "https://schema.org",
+		"@type": "FAQPage",
+		"mainEntity": [
+			{
+				"@type": "Question",
+				"name": "Is BetterCapture really free?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "Yes, BetterCapture is 100% free and open source under the MIT license. There are no subscriptions, trials, premium tiers, or hidden costs."
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "Can BetterCapture record system audio on Mac?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "Yes, BetterCapture can record system audio and microphone simultaneously using macOS ScreenCaptureKit, without requiring any additional audio drivers or plugins."
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "What video formats does BetterCapture support?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "BetterCapture supports ProRes 4444, HEVC (H.265), and H.264 codecs. ProRes 4444 also includes alpha channel support for transparent recordings."
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "Does BetterCapture add a watermark to recordings?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "No, BetterCapture never adds watermarks to your recordings. All recordings are clean and professional, completely free of any branding or limitations."
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "What macOS version do I need to run BetterCapture?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "BetterCapture requires macOS 15.2 Sequoia or later. It is built with SwiftUI and ScreenCaptureKit, which require modern macOS versions for optimal performance."
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "Does BetterCapture collect any data or track usage?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "No. BetterCapture has zero tracking, zero analytics, and zero cloud uploads. All recordings are stored locally on your Mac. No account is required, and the source code is open for anyone to verify."
+				}
+			}
+		]
 	}
 ];
 ---
 
 <BaseLayout
-	title="BetterCapture - Free Screen Recorder for Mac | Open Source, No Watermark"
-	description="Free, open-source screen recorder for macOS. Record your screen with system audio, ProRes/HEVC support, and no watermarks. Private, lightweight, and completely free. No tracking, no subscriptions."
+	title="BetterCapture - Free Screen Recorder for Mac | ProRes, HEVC, No Watermark"
+	description="Free, open-source screen recorder for macOS built with SwiftUI. Record your screen with system audio, ProRes 4444, HEVC, and H.264. No watermarks, no tracking, no subscriptions. A lightweight QuickTime alternative."
 	canonicalUrl="https://bettercapture.app"
 	ogImage="https://bettercapture.app/bettercapture-og.png"
 	structuredData={structuredData}
 >
 	<Fragment slot="head">
-		<meta name="keywords" content="free screen recorder mac, mac screen recording software, open source screen recorder, record mac screen with audio, screen recorder without watermark, best free screen recorder macos, prores screen recorder, lightweight screen recorder mac, private screen recorder, quicktime alternative, system audio recording mac, screen capture macos, no watermark screen recorder" />
+		<meta name="keywords" content="free screen recorder mac, mac screen recording software, open source screen recorder, record mac screen with audio, screen recorder without watermark, best free screen recorder macos, prores screen recorder, hevc screen recorder mac, lightweight screen recorder mac, private screen recorder, quicktime alternative, system audio recording mac, screen capture macos, no watermark screen recorder, macos sequoia screen recorder, native mac screen recorder, screen recorder with alpha channel, professional screen recorder mac" />
 		<meta name="author" content="Joshua Sattler" />
 		<meta name="application-name" content="BetterCapture" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
@@ -80,7 +133,7 @@ const structuredData = [
 
 	<main>
 		<Hero client:load />
-		<FeaturesSection client:load />
-		<CTASection client:load />
+		<FeaturesSection client:visible />
+		<CTASection client:visible />
 	</main>
 </BaseLayout>

@@ -85,8 +85,11 @@
           <div class="screenshot-perspective screenshot-fade" class:screenshot-fade-visible={screenshotVisible}>
             <img 
               src="/screenshot-basic.png" 
-              alt="Better Capture Screenshot"
+              alt="BetterCapture screen recorder interface showing recording controls and menu bar integration on macOS"
               class="screenshot-tilt rounded-2xl w-full h-auto shadow-2xl"
+              width="800"
+              height="600"
+              loading="eager"
             />
           </div>
         </div>
