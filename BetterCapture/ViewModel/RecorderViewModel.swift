@@ -222,6 +222,9 @@ final class RecorderViewModel {
             }
             logger.info("Video size: \(self.videoSize.width)x\(self.videoSize.height)")
 
+            // Access security-scoped output directory before writing
+            settings.startAccessingOutputDirectory()
+
             // Setup asset writer
             let outputURL = settings.generateOutputURL()
             try assetWriter.setup(url: outputURL, settings: settings, videoSize: videoSize)
@@ -247,6 +250,7 @@ final class RecorderViewModel {
             lastError = error
             cameraSession.stop()
             selectionBorderFrame.dismiss()
+            settings.stopAccessingOutputDirectory()
             logger.error("Failed to start recording: \(error.localizedDescription)")
         }
     }
@@ -279,10 +283,13 @@ final class RecorderViewModel {
             // Send notification
             notificationService.sendRecordingSavedNotification(fileURL: outputURL)
 
+            settings.stopAccessingOutputDirectory()
+
         } catch {
             state = .idle
             lastError = error
             assetWriter.cancel()
+            settings.stopAccessingOutputDirectory()
             notificationService.sendRecordingFailedNotification(error: error)
             logger.error("Failed to stop recording: \(error.localizedDescription)")
         }

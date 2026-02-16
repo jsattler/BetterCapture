@@ -47,9 +47,9 @@ struct MenuBarView: View {
                 accentColor: .green,
                 isDisabled: !viewModel.canStartRecording
             ) {
-                dismiss()
                 Task {
                     await viewModel.startRecording()
+                    dismiss()
                 }
             }
             .padding(.top, 8)
