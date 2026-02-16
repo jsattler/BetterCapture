@@ -75,10 +75,13 @@ final class CameraSession {
             session = newSession
 
             // Wait for the session to actually be running before returning.
+            // AVCaptureSession is not Sendable, but we fully configure it on
+            // the main actor above and then only touch it on `queue` below.
+            nonisolated(unsafe) let runnable = newSession
             let isRunning = await withCheckedContinuation { continuation in
                 queue.async {
-                    newSession.startRunning()
-                    continuation.resume(returning: newSession.isRunning)
+                    runnable.startRunning()
+                    continuation.resume(returning: runnable.isRunning)
                 }
             }
 
@@ -93,8 +96,10 @@ final class CameraSession {
         guard let current = session else { return }
         session = nil
 
+        // See comment in start(deviceID:) for why nonisolated(unsafe) is appropriate.
+        nonisolated(unsafe) let stoppable = current
         queue.async {
-            current.stopRunning()
+            stoppable.stopRunning()
         }
 
         logger.info("Camera session stopped")
