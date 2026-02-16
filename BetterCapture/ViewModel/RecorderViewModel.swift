@@ -223,7 +223,7 @@ final class RecorderViewModel {
             logger.info("Video size: \(self.videoSize.width)x\(self.videoSize.height)")
 
             // Access security-scoped output directory before writing
-            settings.startAccessingOutputDirectory()
+            _ = settings.startAccessingOutputDirectory()
 
             // Setup asset writer
             let outputURL = settings.generateOutputURL()
