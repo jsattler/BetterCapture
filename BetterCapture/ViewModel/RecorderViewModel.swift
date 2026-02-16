@@ -97,7 +97,7 @@ final class RecorderViewModel {
         self.audioDeviceService = AudioDeviceService()
         self.cameraDeviceService = CameraDeviceService()
         self.previewService = PreviewService()
-        self.notificationService = NotificationService()
+        self.notificationService = NotificationService(settings: settings)
         self.permissionService = PermissionService()
         self.captureEngine = CaptureEngine()
         self.assetWriter = AssetWriter()
