@@ -55,6 +55,14 @@ struct VideoSettingsView: View {
         }
     }
 
+    private var qualityHelpText: String {
+        if settings.videoQuality.bitsPerPixel(for: settings.videoCodec) != nil {
+            return "Controls the video bitrate. Higher quality produces sharper output with larger files"
+        } else {
+            return "ProRes codecs use fixed-quality encoding"
+        }
+    }
+
     var body: some View {
         Form {
             Section("Recording") {
@@ -82,6 +90,14 @@ struct VideoSettingsView: View {
                         Text(".\(format.rawValue)").tag(format)
                     }
                 }
+
+                Picker("Quality", selection: $settings.videoQuality) {
+                    ForEach(VideoQuality.allCases) { quality in
+                        Text(quality.rawValue).tag(quality)
+                    }
+                }
+                .disabled(settings.videoQuality.bitsPerPixel(for: settings.videoCodec) == nil)
+                .help(qualityHelpText)
             }
 
             Section("Advanced") {

@@ -368,6 +368,21 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             videoSettings[AVVideoCodecKey] = AVVideoCodecType.proRes4444
         }
 
+        // Add compression properties for H.264 and HEVC to control bitrate.
+        // ProRes codecs use fixed-quality encoding and don't need these.
+        if let bpp = settings.videoQuality.bitsPerPixel(for: settings.videoCodec) {
+            let frameRate = settings.frameRate == .native ? 60.0 : Double(settings.frameRate.rawValue)
+            let bitrate = Int(size.width * size.height * bpp * frameRate)
+
+            videoSettings[AVVideoCompressionPropertiesKey] = [
+                AVVideoAverageBitRateKey: bitrate,
+                AVVideoExpectedSourceFrameRateKey: frameRate,
+                AVVideoMaxKeyFrameIntervalKey: Int(frameRate * 2)
+            ]
+
+            logger.info("Video compression: \(bitrate / 1_000_000) Mbps at \(Int(frameRate)) fps (\(settings.videoQuality.rawValue) quality)")
+        }
+
         // Add HDR color space settings for ProRes codecs with HDR enabled
         if settings.captureHDR && settings.videoCodec.supportsHDR {
             videoSettings[AVVideoColorPropertiesKey] = [
