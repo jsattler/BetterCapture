@@ -130,6 +130,46 @@ enum FrameRate: Int, CaseIterable, Identifiable {
     }
 }
 
+/// Video quality presets controlling compression bitrate for H.264 and HEVC.
+///
+/// Each preset defines a bits-per-pixel multiplier used to calculate the
+/// target average bitrate: `width * height * bpp * frameRate`.
+/// ProRes codecs ignore this setting since they use fixed-quality encoding.
+enum VideoQuality: String, CaseIterable, Identifiable {
+    case low = "Low"
+    case medium = "Medium"
+    case high = "High"
+
+    var id: String { rawValue }
+
+    /// Bits-per-pixel multiplier for H.264
+    var h264BitsPerPixel: Double {
+        switch self {
+        case .low:    0.05
+        case .medium: 0.1
+        case .high:   0.2
+        }
+    }
+
+    /// Bits-per-pixel multiplier for HEVC (more efficient codec)
+    var hevcBitsPerPixel: Double {
+        switch self {
+        case .low:    0.03
+        case .medium: 0.06
+        case .high:   0.1
+        }
+    }
+
+    /// Returns the bits-per-pixel multiplier for the given codec
+    func bitsPerPixel(for codec: VideoCodec) -> Double? {
+        switch codec {
+        case .h264: h264BitsPerPixel
+        case .hevc: hevcBitsPerPixel
+        case .proRes422, .proRes4444: nil
+        }
+    }
+}
+
 /// Persists user preferences using AppStorage
 @MainActor
 @Observable
@@ -143,6 +183,15 @@ final class SettingsStore {
         }
         set {
             frameRateRaw = newValue.rawValue
+        }
+    }
+
+    var videoQuality: VideoQuality {
+        get {
+            VideoQuality(rawValue: videoQualityRaw) ?? .high
+        }
+        set {
+            videoQualityRaw = newValue.rawValue
         }
     }
 
@@ -512,6 +561,18 @@ final class SettingsStore {
         set {
             withMutation(keyPath: \.frameRateRaw) {
                 UserDefaults.standard.set(newValue, forKey: "frameRate")
+            }
+        }
+    }
+
+    private var videoQualityRaw: String {
+        get {
+            access(keyPath: \.videoQualityRaw)
+            return UserDefaults.standard.string(forKey: "videoQuality") ?? VideoQuality.high.rawValue
+        }
+        set {
+            withMutation(keyPath: \.videoQualityRaw) {
+                UserDefaults.standard.set(newValue, forKey: "videoQuality")
             }
         }
     }
