@@ -37,7 +37,7 @@
 ### Homebrew
 
 ```bash
-brew install jsattler/tap/bettercapture
+brew install bettercapture
 ```
 
 ### Direct Download
