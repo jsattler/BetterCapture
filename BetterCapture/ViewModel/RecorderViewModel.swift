@@ -36,6 +36,9 @@ final class RecorderViewModel {
     /// The selected area in screen coordinates (bottom-left origin), used for the border frame overlay
     private var selectedScreenRect: CGRect?
 
+    /// The screen on which the area selection was made
+    private var selectedScreen: NSScreen?
+
     /// Whether the current selection is an area selection (as opposed to a picker selection)
     var isAreaSelection: Bool {
         selectedSourceRect != nil
@@ -89,6 +92,7 @@ final class RecorderViewModel {
     private var videoSize: CGSize = .zero
     private let areaSelectionOverlay = AreaSelectionOverlay()
     private let selectionBorderFrame = SelectionBorderFrame()
+    private let recordingOverlay = RecordingOverlayCoordinator()
 
     // MARK: - Initialization
 
@@ -184,6 +188,7 @@ final class RecorderViewModel {
             // Store the area selection and set the filter on the capture engine
             selectedSourceRect = sourceRect
             selectedScreenRect = result.screenRect
+            selectedScreen = result.screen
             selectedContentFilter = filter
             try await captureEngine.updateFilter(filter)
 
@@ -192,10 +197,25 @@ final class RecorderViewModel {
             // Update preview with the display filter and source rect
             await previewService.setContentFilter(filter, sourceRect: sourceRect)
 
+            // Show the recording overlay on the screen where the area was selected
+            recordingOverlay.show(viewModel: self, screen: selectedScreen)
+
         } catch {
             selectionBorderFrame.dismiss()
             logger.error("Failed to get shareable content for area selection: \(error.localizedDescription)")
         }
+    }
+
+    /// Dismisses the recording overlay without starting a recording.
+    func dismissOverlay() {
+        recordingOverlay.dismiss()
+    }
+
+    /// Called by the recording overlay's "Start Recording" button.
+    /// Dismisses the overlay and starts recording.
+    func startRecordingFromOverlay() async {
+        recordingOverlay.dismiss()
+        await startRecording()
     }
 
     /// Starts a new recording session
@@ -304,8 +324,10 @@ final class RecorderViewModel {
     func resetAreaSelection() async {
         selectedSourceRect = nil
         selectedScreenRect = nil
+        selectedScreen = nil
         selectedContentFilter = nil
         selectionBorderFrame.dismiss()
+        recordingOverlay.dismiss()
         await previewService.stopPreview()
         previewService.clearPreview()
     }
@@ -382,6 +404,7 @@ extension RecorderViewModel: CaptureEngineDelegate {
         // Clear any area selection (picker and area selections are mutually exclusive)
         selectedSourceRect = nil
         selectedScreenRect = nil
+        selectedScreen = nil
         selectionBorderFrame.dismiss()
 
         selectedContentFilter = filter
@@ -391,6 +414,10 @@ extension RecorderViewModel: CaptureEngineDelegate {
         Task {
             await previewService.setContentFilter(filter)
         }
+
+        // Show the recording overlay. For picker selections there is no stored screen
+        // (selectedScreen is nil), so the overlay positions itself below the status item.
+        recordingOverlay.show(viewModel: self, screen: selectedScreen)
     }
 
     func captureEngine(_ engine: CaptureEngine, didStopWithError error: Error?) {
@@ -430,6 +457,9 @@ extension RecorderViewModel: CaptureEngineDelegate {
 
         // Clear the selected content filter
         selectedContentFilter = nil
+
+        // Dismiss the overlay if it was shown after a previous selection
+        recordingOverlay.dismiss()
 
         // Stop and clear the preview
         Task {
