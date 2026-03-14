@@ -17,7 +17,7 @@ env:
   APP_NAME: BetterCapture
   SCHEME: BetterCapture
   XCODE_VERSION: "26.0"
-  SPARKLE_VERSION: "2.7.3"
+  SPARKLE_VERSION: "2.9.0"
 
 jobs:
   build:
