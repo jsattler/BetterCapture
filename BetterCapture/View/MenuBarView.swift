@@ -15,23 +15,13 @@ struct MenuBarView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var currentPreview: NSImage?
 
+    private var isRecording: Bool { viewModel.isRecording }
+
     var body: some View {
         VStack(spacing: 0) {
-            if viewModel.isRecording {
-                recordingContent
-            } else {
-                idleContent
-            }
-        }
-        .frame(width: 320)
-    }
-
-    // MARK: - Idle State Content
-
-    private var idleContent: some View {
-        VStack(spacing: 0) {
-            // Permission status banner (if required permissions are missing)
-            if viewModel.permissionService.screenRecordingState != .granted ||
+            // Permission status banner (only when idle)
+            if !isRecording,
+               viewModel.permissionService.screenRecordingState != .granted ||
                 (viewModel.settings.captureMicrophone && viewModel.permissionService.microphoneState != .granted) {
                 PermissionStatusBanner(
                     permissionService: viewModel.permissionService,
@@ -40,26 +30,38 @@ struct MenuBarView: View {
                 MenuBarDivider()
             }
 
-            // Start Recording Button
-            MenuBarActionButton(
-                title: "Start Recording",
-                systemImage: "record.circle",
-                accentColor: .green,
-                isDisabled: !viewModel.canStartRecording
-            ) {
-                Task {
-                    await viewModel.startRecording()
-                    dismiss()
+            // Recording button (stop + timer) or Start button
+            if isRecording {
+                RecordingButton(
+                    duration: viewModel.formattedDuration
+                ) {
+                    Task {
+                        await viewModel.stopRecording()
+                    }
                 }
+                .padding(.top, 8)
+            } else {
+                MenuBarActionButton(
+                    title: "Start Recording",
+                    systemImage: "record.circle",
+                    accentColor: .green,
+                    isDisabled: !viewModel.canStartRecording
+                ) {
+                    Task {
+                        await viewModel.startRecording()
+                        dismiss()
+                    }
+                }
+                .padding(.top, 8)
             }
-            .padding(.top, 8)
 
             MenuBarDivider()
 
             // Content Selection
             ContentSelectionButton(viewModel: viewModel, onDismissPanel: { dismiss() })
+                .disabled(isRecording)
 
-            // Preview thumbnail below the content selection button
+            // Preview thumbnail
             if viewModel.hasContentSelected {
                 PreviewThumbnailView(
                     previewImage: currentPreview,
@@ -96,22 +98,26 @@ struct MenuBarView: View {
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 12)
+                .disabled(isRecording)
             }
 
             MenuBarDivider()
 
-            // Settings Sections (no divider between them - section headers provide separation)
-            VideoSettingsSection(settings: viewModel.settings)
+            // Settings Sections
+            Group {
+                VideoSettingsSection(settings: viewModel.settings)
 
-            PresenterOverlaySettingsSection(
-                settings: viewModel.settings,
-                cameraDeviceService: viewModel.cameraDeviceService
-            )
+                PresenterOverlaySettingsSection(
+                    settings: viewModel.settings,
+                    cameraDeviceService: viewModel.cameraDeviceService
+                )
 
-            AudioSettingsSection(
-                settings: viewModel.settings,
-                audioDeviceService: viewModel.audioDeviceService
-            )
+                AudioSettingsSection(
+                    settings: viewModel.settings,
+                    audioDeviceService: viewModel.audioDeviceService
+                )
+            }
+            .disabled(isRecording)
 
             MenuBarDivider()
 
@@ -137,22 +143,7 @@ struct MenuBarView: View {
             }
             .padding(.bottom, 8)
         }
-    }
-
-    // MARK: - Recording State Content
-
-    private var recordingContent: some View {
-        VStack(spacing: 0) {
-            // Combined Stop Recording Button with timer
-            RecordingButton(
-                duration: viewModel.formattedDuration
-            ) {
-                Task {
-                    await viewModel.stopRecording()
-                }
-            }
-            .padding(.vertical, 8)
-        }
+        .frame(width: 320)
     }
 }
 
