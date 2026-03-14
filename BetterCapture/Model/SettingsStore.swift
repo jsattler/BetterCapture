@@ -144,11 +144,13 @@ enum FrameRate: Int, CaseIterable, Identifiable {
     /// The effective frame rate in Hz for encoding calculations (e.g. bitrate).
     ///
     /// For explicit rates this returns the selected value. For `.native` it
-    /// returns 120 to match the maximum capture interval configured in
-    /// `CaptureEngine` (`CMTime(value: 1, timescale: 120)`).
+    /// returns 60 as a practical upper bound. Although `CaptureEngine` sets a
+    /// minimum interval of 1/120s, ScreenCaptureKit only delivers frames when
+    /// content changes, so actual rates are typically well below 120. Using 60
+    /// avoids inflating the bitrate budget beyond what the encoder will use.
     var effectiveFrameRate: Double {
         switch self {
-        case .native: 120.0
+        case .native: 60.0
         default:      Double(rawValue)
         }
     }
@@ -169,18 +171,18 @@ enum VideoQuality: String, CaseIterable, Identifiable {
     /// Bits-per-pixel multiplier for H.264
     var h264BitsPerPixel: Double {
         switch self {
-        case .low:    0.05
-        case .medium: 0.1
-        case .high:   0.2
+        case .low:    0.04
+        case .medium: 0.15
+        case .high:   0.6
         }
     }
 
     /// Bits-per-pixel multiplier for HEVC (more efficient codec)
     var hevcBitsPerPixel: Double {
         switch self {
-        case .low:    0.03
-        case .medium: 0.06
-        case .high:   0.1
+        case .low:    0.02
+        case .medium: 0.1
+        case .high:   0.4
         }
     }
 
