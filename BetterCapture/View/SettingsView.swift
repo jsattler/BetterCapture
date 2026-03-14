@@ -62,6 +62,8 @@ struct VideoSettingsView: View {
             return "ProRes codecs use fixed-quality encoding"
         }
     }
+    
+    private let captureNativeResHelpText = "Choose between the Native resolution of your display or the Logical (1x) resolution"
 
     var body: some View {
         Form {
@@ -108,6 +110,9 @@ struct VideoSettingsView: View {
                 Toggle("HDR Recording", isOn: $settings.captureHDR)
                     .disabled(!settings.videoCodec.supportsHDR)
                     .help(hdrHelpText)
+                
+                Toggle("Capture Native Resolution", isOn: $settings.captureNativeResolution)
+                    .help(captureNativeResHelpText)
             }
 
             Section("Display Elements") {
