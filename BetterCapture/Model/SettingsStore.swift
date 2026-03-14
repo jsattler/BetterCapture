@@ -214,7 +214,7 @@ final class SettingsStore {
 
     var videoQuality: VideoQuality {
         get {
-            VideoQuality(rawValue: videoQualityRaw) ?? .high
+            VideoQuality(rawValue: videoQualityRaw) ?? .medium
         }
         set {
             videoQualityRaw = newValue.rawValue
@@ -594,7 +594,7 @@ final class SettingsStore {
     private var videoQualityRaw: String {
         get {
             access(keyPath: \.videoQualityRaw)
-            return UserDefaults.standard.string(forKey: "videoQuality") ?? VideoQuality.high.rawValue
+            return UserDefaults.standard.string(forKey: "videoQuality") ?? VideoQuality.medium.rawValue
         }
         set {
             withMutation(keyPath: \.videoQualityRaw) {
