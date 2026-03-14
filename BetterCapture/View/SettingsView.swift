@@ -56,7 +56,7 @@ struct VideoSettingsView: View {
     }
 
     private var qualityHelpText: String {
-        if settings.videoQuality.bitsPerPixel(for: settings.videoCodec) != nil {
+        if settings.videoCodec.supportsQualitySetting {
             return "Controls the video bitrate. Higher quality produces sharper output with larger files"
         } else {
             return "ProRes codecs use fixed-quality encoding"
@@ -96,7 +96,7 @@ struct VideoSettingsView: View {
                         Text(quality.rawValue).tag(quality)
                     }
                 }
-                .disabled(settings.videoQuality.bitsPerPixel(for: settings.videoCodec) == nil)
+                .disabled(!settings.videoCodec.supportsQualitySetting)
                 .help(qualityHelpText)
             }
 

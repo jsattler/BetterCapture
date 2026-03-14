@@ -56,6 +56,18 @@ enum VideoCodec: String, CaseIterable, Identifiable {
             return false
         }
     }
+
+    /// Whether this codec supports user-adjustable quality/bitrate settings.
+    ///
+    /// ProRes codecs use fixed-quality encoding and ignore bitrate controls.
+    var supportsQualitySetting: Bool {
+        switch self {
+        case .h264, .hevc:
+            return true
+        case .proRes422, .proRes4444:
+            return false
+        }
+    }
 }
 
 /// Container format for output files
@@ -126,6 +138,18 @@ enum FrameRate: Int, CaseIterable, Identifiable {
             return "Native"
         default:
             return "\(rawValue) fps"
+        }
+    }
+
+    /// The effective frame rate in Hz for encoding calculations (e.g. bitrate).
+    ///
+    /// For explicit rates this returns the selected value. For `.native` it
+    /// returns 120 to match the maximum capture interval configured in
+    /// `CaptureEngine` (`CMTime(value: 1, timescale: 120)`).
+    var effectiveFrameRate: Double {
+        switch self {
+        case .native: 120.0
+        default:      Double(rawValue)
         }
     }
 }
