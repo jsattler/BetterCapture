@@ -56,6 +56,18 @@ enum VideoCodec: String, CaseIterable, Identifiable {
             return false
         }
     }
+
+    /// Whether this codec supports user-adjustable quality/bitrate settings.
+    ///
+    /// ProRes codecs use fixed-quality encoding and ignore bitrate controls.
+    var supportsQualitySetting: Bool {
+        switch self {
+        case .h264, .hevc:
+            return true
+        case .proRes422, .proRes4444:
+            return false
+        }
+    }
 }
 
 /// Container format for output files
@@ -128,6 +140,60 @@ enum FrameRate: Int, CaseIterable, Identifiable {
             return "\(rawValue) fps"
         }
     }
+
+    /// The effective frame rate in Hz for encoding calculations (e.g. bitrate).
+    ///
+    /// For explicit rates this returns the selected value. For `.native` it
+    /// returns 60 as a practical upper bound. Although `CaptureEngine` sets a
+    /// minimum interval of 1/120s, ScreenCaptureKit only delivers frames when
+    /// content changes, so actual rates are typically well below 120. Using 60
+    /// avoids inflating the bitrate budget beyond what the encoder will use.
+    var effectiveFrameRate: Double {
+        switch self {
+        case .native: 60.0
+        default:      Double(rawValue)
+        }
+    }
+}
+
+/// Video quality presets controlling compression bitrate for H.264 and HEVC.
+///
+/// Each preset defines a bits-per-pixel multiplier used to calculate the
+/// target average bitrate: `width * height * bpp * frameRate`.
+/// ProRes codecs ignore this setting since they use fixed-quality encoding.
+enum VideoQuality: String, CaseIterable, Identifiable {
+    case low = "Low"
+    case medium = "Medium"
+    case high = "High"
+
+    var id: String { rawValue }
+
+    /// Bits-per-pixel multiplier for H.264
+    var h264BitsPerPixel: Double {
+        switch self {
+        case .low:    0.04
+        case .medium: 0.15
+        case .high:   0.6
+        }
+    }
+
+    /// Bits-per-pixel multiplier for HEVC (more efficient codec)
+    var hevcBitsPerPixel: Double {
+        switch self {
+        case .low:    0.02
+        case .medium: 0.1
+        case .high:   0.4
+        }
+    }
+
+    /// Returns the bits-per-pixel multiplier for the given codec
+    func bitsPerPixel(for codec: VideoCodec) -> Double? {
+        switch codec {
+        case .h264: h264BitsPerPixel
+        case .hevc: hevcBitsPerPixel
+        case .proRes422, .proRes4444: nil
+        }
+    }
 }
 
 /// Persists user preferences using AppStorage
@@ -143,6 +209,15 @@ final class SettingsStore {
         }
         set {
             frameRateRaw = newValue.rawValue
+        }
+    }
+
+    var videoQuality: VideoQuality {
+        get {
+            VideoQuality(rawValue: videoQualityRaw) ?? .medium
+        }
+        set {
+            videoQualityRaw = newValue.rawValue
         }
     }
 
@@ -512,6 +587,18 @@ final class SettingsStore {
         set {
             withMutation(keyPath: \.frameRateRaw) {
                 UserDefaults.standard.set(newValue, forKey: "frameRate")
+            }
+        }
+    }
+
+    private var videoQualityRaw: String {
+        get {
+            access(keyPath: \.videoQualityRaw)
+            return UserDefaults.standard.string(forKey: "videoQuality") ?? VideoQuality.medium.rawValue
+        }
+        set {
+            withMutation(keyPath: \.videoQualityRaw) {
+                UserDefaults.standard.set(newValue, forKey: "videoQuality")
             }
         }
     }

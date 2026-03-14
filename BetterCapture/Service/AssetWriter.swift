@@ -5,10 +5,10 @@
 //  Created by Joshua Sattler on 29.01.26.
 //
 
-import Foundation
 import AVFoundation
-import ScreenCaptureKit
+import Foundation
 import OSLog
+import ScreenCaptureKit
 import os
 
 /// Service responsible for writing captured media to disk using AVAssetWriter
@@ -25,7 +25,8 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     private(set) var isWriting = false
     private(set) var outputURL: URL?
 
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "BetterCapture", category: "AssetWriter")
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "BetterCapture", category: "AssetWriter")
 
     // Track if we've received the first sample
     private var hasStartedSession = false
@@ -72,16 +73,19 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
         if let videoInput, assetWriter.canAdd(videoInput) {
             assetWriter.add(videoInput)
 
-            // Create pixel buffer adaptor for appending raw pixel buffers from ScreenCaptureKit
-            // Use HDR 10-bit format when HDR is enabled with a compatible codec
-            let pixelFormat: OSType = (settings.captureHDR && settings.videoCodec.supportsHDR)
+            // Create pixel buffer adaptor for appending raw pixel buffers from ScreenCaptureKit.
+            // Must match the pixel format configured on SCStreamConfiguration in CaptureEngine.
+            // HDR capture uses 10-bit 4:2:0 because ScreenCaptureKit is optimized for this format
+            // when capturing HDR content.
+            let pixelFormat: OSType =
+                (settings.captureHDR && settings.videoCodec.supportsHDR)
                 ? kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
                 : kCVPixelFormatType_32BGRA
 
             let sourcePixelBufferAttributes: [String: Any] = [
                 kCVPixelBufferPixelFormatTypeKey as String: pixelFormat,
                 kCVPixelBufferWidthKey as String: Int(videoSize.width),
-                kCVPixelBufferHeightKey as String: Int(videoSize.height)
+                kCVPixelBufferHeightKey as String: Int(videoSize.height),
             ]
             pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(
                 assetWriterInput: videoInput,
@@ -142,10 +146,13 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     /// Appends a video sample buffer - called synchronously from capture queue
     func appendVideoSample(_ sampleBuffer: CMSampleBuffer) {
         // Check frame status first - only process complete frames
-        guard let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as? [[String: Any]],
-              let attachments = attachmentsArray.first,
-              let statusRawValue = attachments[SCStreamFrameInfo.status.rawValue] as? Int,
-              let status = SCFrameStatus(rawValue: statusRawValue) else {
+        guard
+            let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(
+                sampleBuffer, createIfNecessary: false) as? [[String: Any]],
+            let attachments = attachmentsArray.first,
+            let statusRawValue = attachments[SCStreamFrameInfo.status.rawValue] as? Int,
+            let status = SCFrameStatus(rawValue: statusRawValue)
+        else {
             logger.warning("Could not extract frame status from sample buffer")
             return
         }
@@ -157,10 +164,11 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
 
         lock.withLockUnchecked {
             guard let assetWriter,
-                  assetWriter.status == .writing,
-                  let videoInput,
-                  videoInput.isReadyForMoreMediaData,
-                  let adaptor = pixelBufferAdaptor else {
+                assetWriter.status == .writing,
+                let videoInput,
+                videoInput.isReadyForMoreMediaData,
+                let adaptor = pixelBufferAdaptor
+            else {
                 return
             }
 
@@ -176,7 +184,9 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                 // Guard against non-monotonic timestamps. Presenter Overlay can
                 // cause timing glitches when compositing the camera into the
                 // stream; a single bad timestamp permanently fails the writer.
-                if lastVideoPresentationTime.isValid && presentationTime <= lastVideoPresentationTime {
+                if lastVideoPresentationTime.isValid
+                    && presentationTime <= lastVideoPresentationTime
+                {
                     return
                 }
             }
@@ -196,7 +206,8 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                 }
             } else {
                 if let error = assetWriter.error {
-                    logger.error("Failed to append video pixel buffer: \(error.localizedDescription)")
+                    logger.error(
+                        "Failed to append video pixel buffer: \(error.localizedDescription)")
                 } else {
                     logger.error("Failed to append video pixel buffer - no error available")
                 }
@@ -208,9 +219,10 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     func appendAudioSample(_ sampleBuffer: CMSampleBuffer) {
         lock.withLockUnchecked {
             guard let assetWriter,
-                  assetWriter.status == .writing,
-                  let audioInput,
-                  audioInput.isReadyForMoreMediaData else {
+                assetWriter.status == .writing,
+                let audioInput,
+                audioInput.isReadyForMoreMediaData
+            else {
                 return
             }
 
@@ -234,9 +246,10 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     func appendMicrophoneSample(_ sampleBuffer: CMSampleBuffer) {
         lock.withLockUnchecked {
             guard let assetWriter,
-                  assetWriter.status == .writing,
-                  let microphoneInput,
-                  microphoneInput.isReadyForMoreMediaData else {
+                assetWriter.status == .writing,
+                let microphoneInput,
+                microphoneInput.isReadyForMoreMediaData
+            else {
                 return
             }
 
@@ -263,7 +276,9 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                     throw AssetWriterError.noOutputURL
                 }
 
-                logger.info("Finishing writing - status: \(assetWriter.status.rawValue), session started: \(self.hasStartedSession), frames written: \(self.frameCount)")
+                logger.info(
+                    "Finishing writing - status: \(assetWriter.status.rawValue), session started: \(self.hasStartedSession), frames written: \(self.frameCount)"
+                )
 
                 // Check if we actually started a session (received at least one frame)
                 guard hasStartedSession else {
@@ -295,7 +310,8 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
 
             if assetWriter.status == .failed {
                 let error = assetWriter.error
-                logger.error("AssetWriter failed: \(error?.localizedDescription ?? "unknown error")")
+                logger.error(
+                    "AssetWriter failed: \(error?.localizedDescription ?? "unknown error")")
                 throw AssetWriterError.writingFailed(error)
             }
 
@@ -303,7 +319,9 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             hasStartedSession = false
             lastVideoPresentationTime = .invalid
 
-            logger.info("AssetWriter finished writing \(self.frameCount) frames to: \(url.lastPathComponent)")
+            logger.info(
+                "AssetWriter finished writing \(self.frameCount) frames to: \(url.lastPathComponent)"
+            )
             frameCount = 0
 
             // Clean up
@@ -347,7 +365,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     private func createVideoSettings(from settings: SettingsStore, size: CGSize) -> [String: Any] {
         var videoSettings: [String: Any] = [
             AVVideoWidthKey: Int(size.width),
-            AVVideoHeightKey: Int(size.height)
+            AVVideoHeightKey: Int(size.height),
         ]
 
         switch settings.videoCodec {
@@ -368,12 +386,42 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             videoSettings[AVVideoCodecKey] = AVVideoCodecType.proRes4444
         }
 
-        // Add HDR color space settings for ProRes codecs with HDR enabled
+        // Add compression properties for H.264 and HEVC to control bitrate.
+        // ProRes codecs use fixed-quality encoding and don't need these.
+        if let bpp = settings.videoQuality.bitsPerPixel(for: settings.videoCodec) {
+            let frameRate = settings.frameRate.effectiveFrameRate
+            let bitrate = Int(size.width * size.height * bpp * frameRate)
+
+            videoSettings[AVVideoCompressionPropertiesKey] = [
+                AVVideoAverageBitRateKey: bitrate,
+                AVVideoExpectedSourceFrameRateKey: frameRate,
+                AVVideoMaxKeyFrameIntervalKey: Int(frameRate * 2),
+            ]
+
+            logger.info(
+                "Video compression: \(bitrate / 1_000_000) Mbps at \(Int(frameRate)) fps (\(settings.videoQuality.rawValue) quality)"
+            )
+        }
+
+        // Tag the container with color space metadata.
+        // For HDR: ScreenCaptureKit with captureDynamicRange = .hdrCanonicalDisplay and
+        // colorSpaceName = CGColorSpace.itur_2100_HLG delivers pixel buffers with
+        // correct BT.2020 / HLG data.
+        // For SDR: We explicitly tag the video with Rec. 709 metadata.
+        // Setting AVVideoColorPropertiesKey ensures the file's 'colr' atom and H.264/HEVC
+        // VUI parameters are written. Without this, players and tools like ffprobe
+        // will report the color range and color space as "unknown".
         if settings.captureHDR && settings.videoCodec.supportsHDR {
             videoSettings[AVVideoColorPropertiesKey] = [
                 AVVideoColorPrimariesKey: AVVideoColorPrimaries_ITU_R_2020,
                 AVVideoTransferFunctionKey: AVVideoTransferFunction_ITU_R_2100_HLG,
-                AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_2020
+                AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_2020,
+            ]
+        } else {
+            videoSettings[AVVideoColorPropertiesKey] = [
+                AVVideoColorPrimariesKey: AVVideoColorPrimaries_ITU_R_709_2,
+                AVVideoTransferFunctionKey: AVVideoTransferFunction_ITU_R_709_2,
+                AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_709_2,
             ]
         }
 
@@ -387,7 +435,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                 AVFormatIDKey: kAudioFormatMPEG4AAC,
                 AVSampleRateKey: 48000,
                 AVNumberOfChannelsKey: 2,
-                AVEncoderBitRateKey: 256000
+                AVEncoderBitRateKey: 256000,
             ]
 
         case .pcm:
@@ -398,7 +446,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                 AVLinearPCMBitDepthKey: 16,
                 AVLinearPCMIsFloatKey: false,
                 AVLinearPCMIsBigEndianKey: false,
-                AVLinearPCMIsNonInterleaved: false
+                AVLinearPCMIsNonInterleaved: false,
             ]
         }
     }
@@ -408,15 +456,21 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
 
 extension AssetWriter {
 
-    func captureEngine(_ engine: CaptureEngine, didOutputVideoSampleBuffer sampleBuffer: CMSampleBuffer) {
+    func captureEngine(
+        _ engine: CaptureEngine, didOutputVideoSampleBuffer sampleBuffer: CMSampleBuffer
+    ) {
         appendVideoSample(sampleBuffer)
     }
 
-    func captureEngine(_ engine: CaptureEngine, didOutputAudioSampleBuffer sampleBuffer: CMSampleBuffer) {
+    func captureEngine(
+        _ engine: CaptureEngine, didOutputAudioSampleBuffer sampleBuffer: CMSampleBuffer
+    ) {
         appendAudioSample(sampleBuffer)
     }
 
-    func captureEngine(_ engine: CaptureEngine, didOutputMicrophoneSampleBuffer sampleBuffer: CMSampleBuffer) {
+    func captureEngine(
+        _ engine: CaptureEngine, didOutputMicrophoneSampleBuffer sampleBuffer: CMSampleBuffer
+    ) {
         appendMicrophoneSample(sampleBuffer)
     }
 }

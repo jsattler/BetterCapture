@@ -228,14 +228,14 @@ final class CaptureEngine: NSObject {
         if settings.presenterOverlayEnabled {
             config.presenterOverlayPrivacyAlertSetting = .always
         }
-
-        // Configure pixel format and dynamic range based on HDR setting
         if settings.captureHDR && settings.videoCodec.supportsHDR {
-            // HDR: Use 10-bit YCbCr format with HDR dynamic range
+            // Use 10-bit 4:2:0 YCbCr for HDR. ScreenCaptureKit is optimized for this format.
             config.pixelFormat = kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
-            config.captureDynamicRange = .hdrLocalDisplay
-        } else {
-            // SDR: Use 8-bit BGRA format
+            // Use canonical display to optimize HDR content for playback on other devices,
+            // and explicitly request the HLG color space to match AVAssetWriter tags.
+            config.captureDynamicRange = .hdrCanonicalDisplay
+            config.colorSpaceName = CGColorSpace.itur_2100_HLG
+        } else {            // SDR: Use 8-bit BGRA format
             config.pixelFormat = kCVPixelFormatType_32BGRA
             config.captureDynamicRange = .SDR
         }
