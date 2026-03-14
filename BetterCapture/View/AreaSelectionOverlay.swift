@@ -566,19 +566,19 @@ final class AreaSelectionView: NSView {
     // MARK: - Handle Calculation
 
     private func allHandleRects() -> [ResizeHandle: CGRect] {
-        let r = selectionRect
-        let s = handleSize
-        let half = s / 2
+        let rect = selectionRect
+        let size = handleSize
+        let half = size / 2
 
         return [
-            .topLeft: CGRect(x: r.minX - half, y: r.maxY - half, width: s, height: s),
-            .top: CGRect(x: r.midX - half, y: r.maxY - half, width: s, height: s),
-            .topRight: CGRect(x: r.maxX - half, y: r.maxY - half, width: s, height: s),
-            .left: CGRect(x: r.minX - half, y: r.midY - half, width: s, height: s),
-            .right: CGRect(x: r.maxX - half, y: r.midY - half, width: s, height: s),
-            .bottomLeft: CGRect(x: r.minX - half, y: r.minY - half, width: s, height: s),
-            .bottom: CGRect(x: r.midX - half, y: r.minY - half, width: s, height: s),
-            .bottomRight: CGRect(x: r.maxX - half, y: r.minY - half, width: s, height: s),
+            .topLeft: CGRect(x: rect.minX - half, y: rect.maxY - half, width: size, height: size),
+            .top: CGRect(x: rect.midX - half, y: rect.maxY - half, width: size, height: size),
+            .topRight: CGRect(x: rect.maxX - half, y: rect.maxY - half, width: size, height: size),
+            .left: CGRect(x: rect.minX - half, y: rect.midY - half, width: size, height: size),
+            .right: CGRect(x: rect.maxX - half, y: rect.midY - half, width: size, height: size),
+            .bottomLeft: CGRect(x: rect.minX - half, y: rect.minY - half, width: size, height: size),
+            .bottom: CGRect(x: rect.midX - half, y: rect.minY - half, width: size, height: size),
+            .bottomRight: CGRect(x: rect.maxX - half, y: rect.minY - half, width: size, height: size),
         ]
     }
 
