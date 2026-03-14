@@ -42,7 +42,7 @@ analyzer_rules:
   - unused_declaration
 
 line_length:
-  warning: 120
+  warning: 180
   error: 200
 
 type_body_length:

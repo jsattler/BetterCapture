@@ -175,8 +175,7 @@ final class PreviewService: NSObject {
         config.width = previewWidth
         config.height = previewHeight
 
-        // Lower frame rate for preview (5 FPS is sufficient)
-        config.minimumFrameInterval = CMTime(value: 1, timescale: 5)
+        config.minimumFrameInterval = CMTime(value: 1, timescale: 15)
 
         // BGRA pixel format for display
         config.pixelFormat = kCVPixelFormatType_32BGRA
