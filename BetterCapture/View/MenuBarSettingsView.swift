@@ -82,11 +82,19 @@ struct MenuBarToggle: View {
 
 // MARK: - Expandable Picker Row
 
+/// Represents a single option in a `MenuBarExpandablePicker`
+struct PickerOption<Value: Hashable & Equatable> {
+    let value: Value
+    let label: String
+    var isDisabled: Bool = false
+    var disabledMessage: String?
+}
+
 /// A menu bar style picker that expands inline to show options with hover effect
 struct MenuBarExpandablePicker<SelectionValue: Hashable & Equatable>: View {
     let name: String
     @Binding var selection: SelectionValue
-    let options: [(value: SelectionValue, label: String, isDisabled: Bool, disabledMessage: String?)]
+    let options: [PickerOption<SelectionValue>]
     @State private var isExpanded = false
     @State private var isHovered = false
 
@@ -98,14 +106,14 @@ struct MenuBarExpandablePicker<SelectionValue: Hashable & Equatable>: View {
     ) {
         self.name = name
         self._selection = selection
-        self.options = options.map { ($0.value, $0.label, false, nil) }
+        self.options = options.map { PickerOption(value: $0.value, label: $0.label) }
     }
 
     /// Full initializer with disabled state support
     init(
         name: String,
         selection: Binding<SelectionValue>,
-        optionsWithState: [(value: SelectionValue, label: String, isDisabled: Bool, disabledMessage: String?)]
+        optionsWithState: [PickerOption<SelectionValue>]
     ) {
         self.name = name
         self._selection = selection
@@ -450,7 +458,7 @@ struct VideoSettingsSection: View {
                 selection: $settings.videoCodec,
                 optionsWithState: VideoCodec.allCases.map { codec in
                     let isSupported = settings.containerFormat.supportedVideoCodecs.contains(codec)
-                    return (
+                    return PickerOption(
                         value: codec,
                         label: codec.rawValue,
                         isDisabled: !isSupported,
@@ -517,7 +525,7 @@ struct AudioSettingsSection: View {
                 selection: $settings.audioCodec,
                 optionsWithState: AudioCodec.allCases.map { codec in
                     let isSupported = settings.containerFormat.supportedAudioCodecs.contains(codec)
-                    return (
+                    return PickerOption(
                         value: codec,
                         label: codec.rawValue,
                         isDisabled: !isSupported,
