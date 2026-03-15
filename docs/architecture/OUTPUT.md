@@ -32,12 +32,12 @@ HEVC uses lower bpp values because it achieves comparable visual quality at roug
 
 ### Video Codecs
 
-| Codec       | Container | Alpha               | HDR (10-bit) | Notes                                                    |
-| ----------- | --------- | ------------------- | ------------ | -------------------------------------------------------- |
-| H.264       | MOV, MP4  | No                  | No           | 8-bit SDR only                                           |
+| Codec       | Container | Alpha               | HDR (10-bit) | Notes                                                                  |
+| ----------- | --------- | ------------------- | ------------ | ---------------------------------------------------------------------- |
+| H.264       | MOV, MP4  | No                  | No           | 8-bit SDR only                                                         |
 | HEVC        | MOV, MP4  | Optional (MOV only) | Yes          | Default codec. Alpha via `hevcWithAlpha` (mutually exclusive with HDR) |
-| ProRes 422  | MOV only  | No                  | Yes          | 10-bit HDR support                                       |
-| ProRes 4444 | MOV only  | Always              | Yes          | 10-bit/12-bit HDR, always includes alpha                 |
+| ProRes 422  | MOV only  | No                  | Yes          | 10-bit HDR support                                                     |
+| ProRes 4444 | MOV only  | Always              | Yes          | 10-bit/12-bit HDR, always includes alpha                               |
 
 ### Audio Codecs
 
@@ -79,11 +79,11 @@ BetterCapture automatically adjusts settings when changing formats to maintain c
 
 Each codec uses a different pixel format for HDR to match its chroma subsampling and bit-depth requirements:
 
-| Codec       | Pixel Format                                        | Bit Depth | Chroma Subsampling |
-| ----------- | --------------------------------------------------- | --------- | ------------------ |
-| HEVC        | `kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange`  | 10-bit    | 4:2:0              |
-| ProRes 422  | `kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange`  | 10-bit    | 4:2:2              |
-| ProRes 4444 | `kCVPixelFormatType_64RGBAHalf`                     | 16-bit    | 4:4:4 (RGBA)       |
+| Codec       | Pixel Format                                       | Bit Depth | Chroma Subsampling |
+| ----------- | -------------------------------------------------- | --------- | ------------------ |
+| HEVC        | `kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange` | 10-bit    | 4:2:0              |
+| ProRes 422  | `kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange` | 10-bit    | 4:2:2              |
+| ProRes 4444 | `kCVPixelFormatType_64RGBAHalf`                    | 16-bit    | 4:4:4 (RGBA)       |
 
 All HDR formats use video range (narrow range, 64-940 for 10-bit luma). The pixel format is configured identically on both the `SCStreamConfiguration` (capture side) and the `AVAssetWriterInputPixelBufferAdaptor` (encoding side) to avoid unnecessary format conversions.
 
@@ -93,11 +93,11 @@ All HDR formats use video range (narrow range, 64-940 for 10-bit luma). The pixe
 
 SDR recordings are explicitly tagged with BT.709 color properties via `AVVideoColorPropertiesKey` to ensure the output file contains correct `colr` atoms and VUI parameters. Without explicit tags, players may report the color space as "unknown".
 
-| Property          | Value                                      | Meaning                |
-| ----------------- | ------------------------------------------ | ---------------------- |
-| Color primaries   | `AVVideoColorPrimaries_ITU_R_709_2`        | BT.709 (standard)     |
-| Transfer function | `AVVideoTransferFunction_ITU_R_709_2`      | BT.709 gamma           |
-| YCbCr matrix      | `AVVideoYCbCrMatrix_ITU_R_709_2`           | BT.709 matrix          |
+| Property          | Value                                 | Meaning           |
+| ----------------- | ------------------------------------- | ----------------- |
+| Color primaries   | `AVVideoColorPrimaries_ITU_R_709_2`   | BT.709 (standard) |
+| Transfer function | `AVVideoTransferFunction_ITU_R_709_2` | BT.709 gamma      |
+| YCbCr matrix      | `AVVideoYCbCrMatrix_ITU_R_709_2`      | BT.709 matrix     |
 
 ### HDR
 
@@ -107,11 +107,11 @@ All HDR recordings use BT.2020 primaries with PQ (Perceptual Quantizer) transfer
 
 **ProRes HDR** — `AVVideoColorPropertiesKey` must be omitted. AVAssetWriter prohibits automatic color matching for the high-bit-depth pixel formats ProRes uses. Instead, BT.2020/PQ colorimetry is injected per-frame via `CVBufferSetAttachment` on each `CVPixelBuffer`.
 
-| Property          | Value                                        | Meaning                               |
-| ----------------- | -------------------------------------------- | ------------------------------------- |
-| Color primaries   | `AVVideoColorPrimaries_ITU_R_2020`           | BT.2020 wide color gamut              |
-| Transfer function | `AVVideoTransferFunction_SMPTE_ST_2084_PQ`   | PQ (Perceptual Quantizer, HDR10)      |
-| YCbCr matrix      | `AVVideoYCbCrMatrix_ITU_R_2020`              | BT.2020 non-constant luminance matrix |
+| Property          | Value                                      | Meaning                               |
+| ----------------- | ------------------------------------------ | ------------------------------------- |
+| Color primaries   | `AVVideoColorPrimaries_ITU_R_2020`         | BT.2020 wide color gamut              |
+| Transfer function | `AVVideoTransferFunction_SMPTE_ST_2084_PQ` | PQ (Perceptual Quantizer, HDR10)      |
+| YCbCr matrix      | `AVVideoYCbCrMatrix_ITU_R_2020`            | BT.2020 non-constant luminance matrix |
 
 This combination (BT.2020 + PQ) is the standard HDR10 signaling. It is recognized by YouTube, QuickTime Player, Final Cut Pro, and other HDR-aware players and services.
 
@@ -129,11 +129,11 @@ H.264 does not support HDR. HEVC HDR is mutually exclusive with alpha channel ca
 
 BetterCapture uses the `HDRPreset` enum to select the correct ScreenCaptureKit configuration:
 
-| Preset              | macOS Version | SCStreamConfiguration                                       | Notes                                      |
-| ------------------- | ------------- | ----------------------------------------------------------- | ------------------------------------------ |
-| `.hdr10PreservedSDR`| 26+           | `SCStreamConfiguration(preset: .captureHDRRecordingPreservedSDRHDR10)` | Automates HDR10 setup, preserves SDR UI appearance |
-| `.hdr10Manual`      | 15–25         | Manual: `captureDynamicRange = .hdrCanonicalDisplay`        | Manual pixel format and dynamic range      |
-| `.sdr`              | Any           | Default `SCStreamConfiguration()`                           | 8-bit BGRA, SDR                            |
+| Preset               | macOS Version | SCStreamConfiguration                                                  | Notes                                              |
+| -------------------- | ------------- | ---------------------------------------------------------------------- | -------------------------------------------------- |
+| `.hdr10PreservedSDR` | 26+           | `SCStreamConfiguration(preset: .captureHDRRecordingPreservedSDRHDR10)` | Automates HDR10 setup, preserves SDR UI appearance |
+| `.hdr10Manual`       | 15            | Manual: `captureDynamicRange = .hdrCanonicalDisplay`                   | Manual pixel format and dynamic range              |
+| `.sdr`               | Any           | Default `SCStreamConfiguration()`                                      | 8-bit BGRA, SDR                                    |
 
 The macOS 26+ preset injects static HDR10 metadata and configures all color properties as a validated unit. On older macOS versions, BetterCapture manually configures `captureDynamicRange` and the codec-appropriate pixel format.
 

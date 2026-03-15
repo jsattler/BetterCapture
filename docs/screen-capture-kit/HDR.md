@@ -19,7 +19,7 @@ ScreenCaptureKit offers two approaches for HDR capture:
 
 The macOS 26+ preset produces correct HDR10 output and preserves the visual appearance of SDR UI elements on HDR screens. It also injects static HDR10 mastering metadata into the stream.
 
-**Manual configuration:** Set `captureDynamicRange` to `.hdrCanonicalDisplay` on a plain `SCStreamConfiguration`. This is the fallback for macOS 15–25. Do **not** set `colorSpaceName` or `colorMatrix` manually (see pitfalls below).
+**Manual configuration:** Set `captureDynamicRange` to `.hdrCanonicalDisplay` on a plain `SCStreamConfiguration`. This is the fallback for macOS 15. Do **not** set `colorSpaceName` or `colorMatrix` manually (see pitfalls below).
 
 ### Pixel Format by Codec
 
