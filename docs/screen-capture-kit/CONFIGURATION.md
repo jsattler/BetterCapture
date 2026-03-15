@@ -27,9 +27,9 @@ This is a _minimum interval_, not a guaranteed frame rate. SCK may deliver frame
 
 | Property         | Description                                                                                                                              |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `pixelFormat`    | Pixel format for output buffers. `kCVPixelFormatType_32BGRA` for SDR, `kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange` for HDR 10-bit. |
-| `colorSpaceName` | Color space for the output. e.g. `CGColorSpace.sRGB`, `CGColorSpace.itur_2020`.                                                          |
-| `colorMatrix`    | YCbCr matrix. e.g. `kCVImageBufferYCbCrMatrix_ITU_R_709_2`, `kCVImageBufferYCbCrMatrix_ITU_R_2020`.                                      |
+| `pixelFormat`    | Pixel format for output buffers. `kCVPixelFormatType_32BGRA` for SDR. HDR format varies by codec (see [HDR](HDR.md)). |
+| `colorSpaceName` | Color space for the output. **Do not set manually for HDR** -- it triggers an internal tone-mapping pass that clips EDR headroom.         |
+| `colorMatrix`    | YCbCr matrix. Only supports BT.709/601/240M -- does not support BT.2020. Use HDR presets instead.                                        |
 
 The pixel format must match what the `AVAssetWriterInput` expects. Mismatches cause either conversion overhead or encoding failures.
 
@@ -39,9 +39,16 @@ The pixel format must match what the `AVAssetWriterInput` expects. Mismatches ca
 | --------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `captureDynamicRange` | `.sdr`, `.hdrLocalDisplay`, or `.hdrCanonicalDisplay`. Controls whether the stream captures SDR or HDR content. |
 
-When set to `.hdrLocalDisplay`, the stream delivers frames with the HDR brightness range of the local display. This pairs with `kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange` and BT.2020/HLG color properties on the writer side.
+**Presets (recommended):** Rather than setting individual HDR properties manually, use an `SCStreamConfiguration` preset that configures dynamic range, pixel format, and color space as a validated unit:
 
-Presets are also available (e.g. `SCStreamConfiguration.Preset.captureHDRStreamLocalDisplay`) that configure multiple properties at once.
+| Preset                                         | macOS | Description                                                       |
+| ---------------------------------------------- | ----- | ----------------------------------------------------------------- |
+| `.captureHDRRecordingPreservedSDRHDR10`        | 26+   | HDR10 output with correct BT.2020/PQ tags and SDR UI preservation |
+| `.captureHDRStreamCanonicalDisplay`            | 15+   | HDR optimized for external display playback (P3/PQ)               |
+
+When using `.captureHDRRecordingPreservedSDRHDR10`, the pixel format for ProRes codecs must be overridden to match their chroma subsampling requirements. For HEVC, the preset's default pixel format should be left unchanged.
+
+For detailed HDR configuration guidance, see [HDR Capture Reference](HDR.md).
 
 ### Captured Elements
 
@@ -84,11 +91,11 @@ Not every codec uses every setting. The table below shows which SCK and AVAssetW
 
 ### SCStreamConfiguration (Capture Side)
 
-| Setting               | H.264      | HEVC             | ProRes 422                             | ProRes 4444                            |
-| --------------------- | ---------- | ---------------- | -------------------------------------- | -------------------------------------- |
-| `pixelFormat`         | BGRA 8-bit | BGRA 8-bit       | BGRA 8-bit (SDR) or YCbCr 10-bit (HDR) | BGRA 8-bit (SDR) or YCbCr 10-bit (HDR) |
-| `captureDynamicRange` | `.sdr`     | `.sdr`           | `.sdr` or `.hdrLocalDisplay`           | `.sdr` or `.hdrLocalDisplay`           |
-| `shouldBeOpaque`      | `true`     | depends on alpha | `true`                                 | `false` (alpha always on)              |
+| Setting               | H.264      | HEVC                                   | ProRes 422                              | ProRes 4444                             |
+| --------------------- | ---------- | -------------------------------------- | --------------------------------------- | --------------------------------------- |
+| `pixelFormat`         | BGRA 8-bit | BGRA 8-bit (SDR) or YCbCr 10-bit 4:2:0 (HDR) | BGRA 8-bit (SDR) or YCbCr 10-bit 4:2:2 (HDR) | BGRA 8-bit (SDR) or RGBAHalf 16-bit (HDR) |
+| `captureDynamicRange` | `.sdr`     | `.sdr` or HDR preset                  | `.sdr` or HDR preset                   | `.sdr` or HDR preset                   |
+| `shouldBeOpaque`      | `true`     | depends on alpha                       | `true`                                  | `false` (alpha always on)               |
 
 ### AVAssetWriterInput (Writer Side)
 
@@ -97,15 +104,15 @@ Not every codec uses every setting. The table below shows which SCK and AVAssetW
 | Video codec       | `kCMVideoCodecType_H264` | `kCMVideoCodecType_HEVC` | `kCMVideoCodecType_AppleProRes422` | `kCMVideoCodecType_AppleProRes4444` |
 | Bitrate           | Calculated from bpp      | Calculated from bpp      | Not set (fixed quality)            | Not set (fixed quality)             |
 | Keyframe interval | `frameRate * 2`          | `frameRate * 2`          | Not applicable (intraframe)        | Not applicable (intraframe)         |
-| Color properties  | Not set (default BT.709) | Not set (default BT.709) | BT.2020 / HLG when HDR             | BT.2020 / HLG when HDR              |
+| Color properties  | BT.709 (explicit)        | BT.709 (SDR) or BT.2020/PQ via `AVVideoColorPropertiesKey` (HDR) | BT.709 (SDR) or BT.2020/PQ via per-frame `CVBufferSetAttachment` (HDR) | BT.709 (SDR) or BT.2020/PQ via per-frame `CVBufferSetAttachment` (HDR) |
 | Container         | MOV or MP4               | MOV or MP4               | MOV only                           | MOV only                            |
 
 ### Feature Requirements
 
 | Feature             | Required Configuration                                                                                                                                              |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **HDR**             | ProRes 422 or 4444 + `pixelFormat` set to YCbCr 10-bit + `captureDynamicRange` set to `.hdrLocalDisplay` + color properties set to BT.2020/HLG on the writer input. |
-| **Alpha channel**   | HEVC with Alpha or ProRes 4444 + `shouldBeOpaque` set to `false` + MOV container.                                                                                   |
+| **HDR**             | HEVC, ProRes 422, or ProRes 4444 + codec-specific HDR pixel format + HDR preset or manual `captureDynamicRange` + BT.2020/PQ color tagging. See [HDR Capture Reference](HDR.md). |
+| **Alpha channel**   | HEVC with Alpha or ProRes 4444 + `shouldBeOpaque` set to `false` + MOV container. HEVC alpha is mutually exclusive with HDR.                                         |
 | **Even dimensions** | H.264 and HEVC require even pixel width and height. Round up with `ceil(value / 2) * 2`. ProRes does not have this restriction.                                     |
 
 ## Mapping to AVAssetWriter
@@ -123,6 +130,7 @@ If the SCK pixel format is BGRA but the writer expects YCbCr (or vice versa), th
 
 ## Further Reading
 
+- [HDR Capture Reference](HDR.md) -- Detailed HDR configuration, pitfalls, and encoding constraints.
 - [SCStreamConfiguration API Reference](https://developer.apple.com/documentation/screencapturekit/scstreamconfiguration)
 - [AVAssetWriter API Reference](https://developer.apple.com/documentation/avfoundation/avassetwriter)
 - [Tagging Media with Video Color Information](https://developer.apple.com/documentation/avfoundation/tagging-media-with-video-color-information)
