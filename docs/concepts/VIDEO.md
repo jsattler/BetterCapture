@@ -78,7 +78,9 @@ A container (file format) wraps encoded video and audio tracks into a single fil
 The pixel format defines how color data is stored in each frame buffer. Two common layouts for screen recording:
 
 - **BGRA 8-bit** -- 4 channels (Blue, Green, Red, Alpha), 8 bits each. Standard for SDR content. Simple packed layout.
-- **YCbCr 10-bit (4:2:0)** -- Separates brightness (luma) from color (chroma). 10 bits per component. Chroma is stored at half resolution in both dimensions. Used for HDR content.
+- **YCbCr 10-bit (4:2:0)** -- Separates brightness (luma) from color (chroma). 10 bits per component. Chroma is stored at half resolution in both dimensions. Used for HEVC HDR content.
+- **YCbCr 10-bit (4:2:2)** -- Same as 4:2:0 but chroma is only halved horizontally, retaining more color detail. Used for ProRes 422 HDR.
+- **RGBA Half (16-bit float)** -- Full-resolution color and alpha at 16-bit floating point per channel. Used for ProRes 4444 HDR.
 
 The pixel format must match between the capture source and the encoder to avoid unnecessary conversions.
 
@@ -98,10 +100,15 @@ HDR captures a wider range of brightness and color than SDR. This requires:
 
 1. **10-bit (or higher) pixel format** -- 8-bit only supports 256 brightness levels; 10-bit supports 1024.
 2. **Wide color gamut** (BT.2020) -- Covers more colors than standard BT.709/sRGB.
-3. **HDR transfer function** (HLG or PQ) -- Maps the extended brightness range.
-4. **A codec that supports it** -- ProRes 422 and ProRes 4444 support 10-bit HDR. H.264 does not. HEVC technically can, but support varies.
+3. **HDR transfer function** (PQ or HLG) -- Maps the extended brightness range.
+4. **A codec that supports it** -- HEVC (Main 10 profile), ProRes 422, and ProRes 4444 all support HDR. H.264 does not.
 
-HDR content looks like SDR on displays that do not support it. HLG is designed to be backwards-compatible without requiring additional metadata.
+The dominant HDR standard for screen recording is **HDR10**, which combines BT.2020 color primaries with the PQ (Perceptual Quantizer) transfer function. HDR10 is widely supported by YouTube, streaming services, and professional editing tools.
+
+Two common HDR transfer functions:
+
+- **PQ (Perceptual Quantizer, SMPTE ST 2084)** -- Absolute brightness encoding up to 10,000 nits. Used by HDR10 and Dolby Vision. Requires tone mapping on SDR displays.
+- **HLG (Hybrid Log-Gamma)** -- Relative brightness encoding that is backwards-compatible with SDR displays. Used primarily in broadcast.
 
 ## Alpha Channel (Transparency)
 

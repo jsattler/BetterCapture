@@ -6,9 +6,11 @@
 //
 
 import AVFoundation
+import CoreVideo
 import Foundation
 import OSLog
 import ScreenCaptureKit
+import VideoToolbox
 import os
 
 /// Service responsible for writing captured media to disk using AVAssetWriter
@@ -36,6 +38,14 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     /// increasing timestamps and protect the writer from timing glitches that
     /// occur when Presenter Overlay composites the camera into the stream.
     private var lastVideoPresentationTime: CMTime = .invalid
+
+    /// The active HDR preset for this recording session, used to select the
+    /// correct color properties for the output container and per-frame tagging.
+    private var activeHDRPreset: HDRPreset = .sdr
+
+    /// Whether per-frame `CVBufferSetAttachment` color tagging is needed.
+    /// True only for ProRes HDR, where `AVVideoColorPropertiesKey` must be omitted.
+    private var tagBuffersWithHDRColorimetry = false
 
     // Lock for thread-safe access to writer state
     private let lock = OSAllocatedUnfairLock()
@@ -75,11 +85,9 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
 
             // Create pixel buffer adaptor for appending raw pixel buffers from ScreenCaptureKit.
             // Must match the pixel format configured on SCStreamConfiguration in CaptureEngine.
-            // HDR capture uses 10-bit 4:2:0 because ScreenCaptureKit is optimized for this format
-            // when capturing HDR content.
             let pixelFormat: OSType =
                 (settings.captureHDR && settings.videoCodec.supportsHDR)
-                ? kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
+                ? settings.videoCodec.hdrPixelFormat
                 : kCVPixelFormatType_32BGRA
 
             let sourcePixelBufferAttributes: [String: Any] = [
@@ -114,6 +122,11 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                 assetWriter.add(microphoneInput)
             }
         }
+
+        activeHDRPreset = settings.hdrPreset
+        let isProResHDR = activeHDRPreset != .sdr
+            && (settings.videoCodec == .proRes422 || settings.videoCodec == .proRes4444)
+        tagBuffersWithHDRColorimetry = isProResHDR
 
         outputURL = url
         hasStartedSession = false
@@ -195,6 +208,21 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
                 logger.warning("No image buffer in complete video frame")
                 return
+            }
+
+            // Log incoming buffer properties on the first frame to aid HDR debugging.
+            if frameCount == 0 {
+                logPixelBufferProperties(pixelBuffer)
+            }
+
+            // For ProRes HDR, inject BT.2020 / PQ colorimetry directly onto
+            // the pixel buffer. AVAssetWriter prohibits AVVideoColorPropertiesKey
+            // for the high-bit-depth formats ProRes uses, so we tag each frame
+            // to ensure the output file contains correct 'colr' / 'nclx' atoms.
+            if tagBuffersWithHDRColorimetry {
+                CVBufferSetAttachment(pixelBuffer, kCVImageBufferColorPrimariesKey, kCVImageBufferColorPrimaries_ITU_R_2020, .shouldPropagate)
+                CVBufferSetAttachment(pixelBuffer, kCVImageBufferTransferFunctionKey, kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ, .shouldPropagate)
+                CVBufferSetAttachment(pixelBuffer, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_2020, .shouldPropagate)
             }
 
             // Append using the pixel buffer adaptor
@@ -318,6 +346,8 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             isWriting = false
             hasStartedSession = false
             lastVideoPresentationTime = .invalid
+            activeHDRPreset = .sdr
+            tagBuffersWithHDRColorimetry = false
 
             logger.info(
                 "AssetWriter finished writing \(self.frameCount) frames to: \(url.lastPathComponent)"
@@ -342,6 +372,8 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             isWriting = false
             hasStartedSession = false
             lastVideoPresentationTime = .invalid
+            activeHDRPreset = .sdr
+            tagBuffersWithHDRColorimetry = false
             frameCount = 0
 
             // Clean up temp file if it exists
@@ -368,6 +400,8 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             AVVideoHeightKey: Int(size.height),
         ]
 
+        let hdrPreset = settings.hdrPreset
+
         switch settings.videoCodec {
         case .h264:
             videoSettings[AVVideoCodecKey] = AVVideoCodecType.h264
@@ -392,29 +426,48 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             let frameRate = settings.frameRate.effectiveFrameRate
             let bitrate = Int(size.width * size.height * bpp * frameRate)
 
-            videoSettings[AVVideoCompressionPropertiesKey] = [
+            var compressionProperties: [String: Any] = [
                 AVVideoAverageBitRateKey: bitrate,
                 AVVideoExpectedSourceFrameRateKey: frameRate,
                 AVVideoMaxKeyFrameIntervalKey: Int(frameRate * 2),
             ]
+
+            // HEVC HDR: enforce Main 10 profile to prevent 8-bit fallback and
+            // enable automatic HDR metadata insertion (HDR10 / Dolby Vision).
+            if settings.videoCodec == .hevc && hdrPreset != .sdr {
+                compressionProperties[AVVideoProfileLevelKey] =
+                    kVTProfileLevel_HEVC_Main10_AutoLevel as String
+                compressionProperties[kVTCompressionPropertyKey_HDRMetadataInsertionMode as String] =
+                    kVTHDRMetadataInsertionMode_Auto as String
+            }
+
+            videoSettings[AVVideoCompressionPropertiesKey] = compressionProperties
 
             logger.info(
                 "Video compression: \(bitrate / 1_000_000) Mbps at \(Int(frameRate)) fps (\(settings.videoQuality.rawValue) quality)"
             )
         }
 
-        // Tag the container with color space metadata.
-        // For HDR: ScreenCaptureKit with captureDynamicRange = .hdrCanonicalDisplay and
-        // colorSpaceName = CGColorSpace.itur_2100_HLG delivers pixel buffers with
-        // correct BT.2020 / HLG data.
-        // For SDR: We explicitly tag the video with Rec. 709 metadata.
-        // Setting AVVideoColorPropertiesKey ensures the file's 'colr' atom and H.264/HEVC
-        // VUI parameters are written. Without this, players and tools like ffprobe
-        // will report the color range and color space as "unknown".
-        if settings.captureHDR && settings.videoCodec.supportsHDR {
+        // Color space tagging strategy differs by codec:
+        //
+        // HEVC HDR: Tag via AVVideoColorPropertiesKey with BT.2020 / PQ.
+        //   The encoder writes the correct 'colr' atom and VUI parameters.
+        //
+        // ProRes HDR: Do NOT set AVVideoColorPropertiesKey. AVAssetWriter
+        //   prohibits automatic color matching for the high-bit-depth pixel
+        //   formats ProRes uses. Instead, BT.2020 / PQ colorimetry is
+        //   injected per-frame via CVBufferSetAttachment in appendVideoSample().
+        //
+        // SDR (all codecs): Tag with Rec. 709 to ensure 'colr' atoms and
+        //   VUI parameters are written.
+        let isProRes = settings.videoCodec == .proRes422 || settings.videoCodec == .proRes4444
+
+        if isProRes && hdrPreset != .sdr {
+            // Color properties are tagged per-frame via CVBufferSetAttachment.
+        } else if hdrPreset != .sdr {
             videoSettings[AVVideoColorPropertiesKey] = [
                 AVVideoColorPrimariesKey: AVVideoColorPrimaries_ITU_R_2020,
-                AVVideoTransferFunctionKey: AVVideoTransferFunction_ITU_R_2100_HLG,
+                AVVideoTransferFunctionKey: AVVideoTransferFunction_SMPTE_ST_2084_PQ,
                 AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_2020,
             ]
         } else {
@@ -426,6 +479,42 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
         }
 
         return videoSettings
+    }
+
+    /// Logs the pixel format, color space, and matrix of an incoming pixel buffer
+    /// to help diagnose HDR color mismatches.
+    private func logPixelBufferProperties(_ pixelBuffer: CVPixelBuffer) {
+        let pixelFormat = CVPixelBufferGetPixelFormatType(pixelBuffer)
+        let fourCC = String(format: "%c%c%c%c",
+                            (pixelFormat >> 24) & 0xFF,
+                            (pixelFormat >> 16) & 0xFF,
+                            (pixelFormat >> 8) & 0xFF,
+                            pixelFormat & 0xFF)
+
+        let primaries = CVBufferCopyAttachment(pixelBuffer, kCVImageBufferColorPrimariesKey, nil)
+            as? String ?? "none"
+        let transfer = CVBufferCopyAttachment(pixelBuffer, kCVImageBufferTransferFunctionKey, nil)
+            as? String ?? "none"
+        let matrix = CVBufferCopyAttachment(pixelBuffer, kCVImageBufferYCbCrMatrixKey, nil)
+            as? String ?? "none"
+
+        let colorSpaceName: String
+        if let cgColorSpace = CVImageBufferGetColorSpace(pixelBuffer)?.takeUnretainedValue() {
+            colorSpaceName = cgColorSpace.name as String? ?? "unnamed"
+        } else {
+            colorSpaceName = "nil"
+        }
+
+        logger.info(
+            """
+            First frame buffer properties — \
+            pixelFormat: \(fourCC) (0x\(String(pixelFormat, radix: 16))), \
+            colorPrimaries: \(primaries), \
+            transferFunction: \(transfer), \
+            yCbCrMatrix: \(matrix), \
+            CGColorSpace: \(colorSpaceName)
+            """
+        )
     }
 
     private func createAudioSettings(from settings: SettingsStore) -> [String: Any] {

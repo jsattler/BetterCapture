@@ -16,13 +16,17 @@ Quick reference for terms used throughout the documentation.
 | **Frame rate**         | Number of video frames per second (fps).                                                                     |
 | **Gamut**              | The range of colors a color space can represent.                                                             |
 | **HDR**                | High Dynamic Range. Captures wider brightness and color range than SDR.                                      |
+| **HDR10**              | HDR standard using BT.2020 primaries, PQ transfer function, and 10-bit depth. Widely supported by YouTube, streaming services, and professional tools. |
 | **HEVC**               | High Efficiency Video Coding (H.265). Interframe lossy codec with better compression than H.264.             |
-| **HLG**                | Hybrid Log-Gamma. An HDR transfer function that is backwards-compatible with SDR displays.                   |
+| **HLG**                | Hybrid Log-Gamma. An HDR transfer function that is backwards-compatible with SDR displays. Used in broadcast. |
 | **Interframe**         | Compression that stores differences between frames. Produces small files.                                    |
 | **Intraframe**         | Compression that encodes each frame independently. Larger files, faster seeking.                             |
 | **Keyframe**           | A complete frame that does not depend on other frames (I-frame).                                             |
 | **Luma**               | Brightness component in YCbCr color representation.                                                          |
+| **MDCV**               | Mastering Display Color Volume. HDR10 metadata describing the display's color primaries and luminance range.  |
+| **CLLI**               | Content Light Level Info. HDR10 metadata specifying maximum content and frame-average light levels.            |
 | **PCM**                | Pulse-Code Modulation. Uncompressed audio format.                                                            |
+| **PQ**                 | Perceptual Quantizer (SMPTE ST 2084). An HDR transfer function with absolute brightness encoding up to 10,000 nits. Used by HDR10. |
 | **Pixel format**       | How color data is laid out in memory for each pixel (e.g. BGRA 8-bit, YCbCr 10-bit).                         |
 | **ProRes**             | Apple's family of intraframe, visually lossless video codecs.                                                |
 | **Resolution**         | Pixel dimensions of a video frame (width x height).                                                          |

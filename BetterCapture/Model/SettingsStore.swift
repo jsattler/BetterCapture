@@ -50,10 +50,29 @@ enum VideoCodec: String, CaseIterable, Identifiable {
     /// Whether this codec supports HDR (10-bit) recording
     var supportsHDR: Bool {
         switch self {
-        case .proRes422, .proRes4444:
+        case .hevc, .proRes422, .proRes4444:
             return true
-        case .h264, .hevc:
+        case .h264:
             return false
+        }
+    }
+
+    /// The pixel format ScreenCaptureKit and AVAssetWriter should use for HDR capture.
+    ///
+    /// Each codec requires a specific chroma subsampling and bit depth:
+    /// - HEVC Main 10: 10-bit 4:2:0
+    /// - ProRes 422: 10-bit 4:2:2
+    /// - ProRes 4444: 16-bit half-float RGBA
+    var hdrPixelFormat: OSType {
+        switch self {
+        case .hevc:
+            return kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
+        case .proRes422:
+            return kCVPixelFormatType_422YpCbCr10BiPlanarVideoRange
+        case .proRes4444:
+            return kCVPixelFormatType_64RGBAHalf
+        case .h264:
+            return kCVPixelFormatType_32BGRA
         }
     }
 
@@ -196,6 +215,25 @@ enum VideoQuality: String, CaseIterable, Identifiable {
     }
 }
 
+/// Describes which ScreenCaptureKit HDR configuration is active, so the
+/// ``AssetWriter`` can tag the output container with matching colorimetry.
+enum HDRPreset {
+    /// SDR capture — no HDR color properties needed.
+    case sdr
+
+    /// Manual BT.2020 / PQ configuration applied to a plain
+    /// `SCStreamConfiguration`. Used on macOS 15–25 to produce
+    /// HDR10-compatible output (BT.2020 primaries, PQ transfer
+    /// function, BT.2020 YCbCr matrix).
+    case hdr10Manual
+
+    /// ``SCStreamConfiguration.Preset.captureHDRRecordingPreservedSDRHDR10``
+    /// (macOS 26+). Same BT.2020 / PQ colorimetry as `.hdr10Manual`, but
+    /// also injects static HDR10 mastering metadata and preserves SDR UI
+    /// appearance on HDR screens.
+    case hdr10PreservedSDR
+}
+
 /// Persists user preferences using AppStorage
 @MainActor
 @Observable
@@ -250,6 +288,12 @@ final class SettingsStore {
             if !newValue.supportsHDR {
                 captureHDR = false
             }
+
+            // HEVC with alpha uses a separate codec type that doesn't support
+            // Main 10 HDR, so alpha and HDR are mutually exclusive for HEVC.
+            if newValue == .hevc && captureHDR {
+                captureAlphaChannel = false
+            }
         }
     }
 
@@ -289,12 +333,21 @@ final class SettingsStore {
             if !videoCodec.supportsAlphaChannel || !containerFormat.supportsAlphaChannel {
                 return false
             }
+            // HEVC with alpha uses a different codec type incompatible with Main 10 HDR
+            if videoCodec == .hevc && captureHDR {
+                return false
+            }
             return UserDefaults.standard.bool(forKey: "captureAlphaChannel")
         }
         set {
             // Only allow alpha channel if both codec and container support it
             let canEnable = videoCodec.supportsAlphaChannel && containerFormat.supportsAlphaChannel
-            let finalValue = newValue && canEnable
+            var finalValue = newValue && canEnable
+
+            // HEVC alpha and HDR are mutually exclusive
+            if videoCodec == .hevc && finalValue && captureHDR {
+                finalValue = false
+            }
 
             withMutation(keyPath: \.captureAlphaChannel) {
                 UserDefaults.standard.set(finalValue, forKey: "captureAlphaChannel")
@@ -311,7 +364,24 @@ final class SettingsStore {
             withMutation(keyPath: \.captureHDR) {
                 UserDefaults.standard.set(newValue, forKey: "captureHDR")
             }
+
+            // HEVC alpha and HDR are mutually exclusive
+            if newValue && videoCodec == .hevc {
+                captureAlphaChannel = false
+            }
         }
+    }
+
+    /// The active HDR preset for the current codec and OS version.
+    ///
+    /// Both ``CaptureEngine`` and ``AssetWriter`` use this to ensure the
+    /// stream configuration and output color tags stay in sync.
+    var hdrPreset: HDRPreset {
+        guard captureHDR && videoCodec.supportsHDR else { return .sdr }
+        if #available(macOS 26, *) {
+            return .hdr10PreservedSDR
+        }
+        return .hdr10Manual
     }
 
     // MARK: - Audio Settings

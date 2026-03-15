@@ -191,7 +191,36 @@ final class CaptureEngine: NSObject {
     ///   - contentSize: The output dimensions for the captured video
     ///   - sourceRect: Optional rectangle for area selection (display points, top-left origin)
     private func createStreamConfiguration(from settings: SettingsStore, contentSize: CGSize, sourceRect: CGRect? = nil) -> SCStreamConfiguration {
-        let config = SCStreamConfiguration()
+        let config: SCStreamConfiguration
+
+        switch settings.hdrPreset {
+        case .hdr10PreservedSDR:
+            if #available(macOS 26, *) {
+                config = SCStreamConfiguration(preset: .captureHDRRecordingPreservedSDRHDR10)
+            } else {
+                // Unreachable — hdrPreset only returns .hdr10PreservedSDR on macOS 26+
+                config = SCStreamConfiguration()
+            }
+            // Only override pixel format for ProRes, which needs different
+            // chroma subsampling (4:2:2 / 16-bit RGBA). For HEVC, let the
+            // preset's own pixel format stand to preserve EDR headroom.
+            if settings.videoCodec == .proRes422 || settings.videoCodec == .proRes4444 {
+                config.pixelFormat = settings.videoCodec.hdrPixelFormat
+            }
+
+        case .hdr10Manual:
+            // Manually replicate the HDR10 recording preset for pre-macOS 26.
+            // Do NOT set colorSpaceName — it triggers an internal CoreGraphics
+            // tone-mapping pass that destructively clips EDR headroom.
+            config = SCStreamConfiguration()
+            config.captureDynamicRange = .hdrCanonicalDisplay
+            config.pixelFormat = settings.videoCodec.hdrPixelFormat
+
+        case .sdr:
+            config = SCStreamConfiguration()
+            config.pixelFormat = kCVPixelFormatType_32BGRA
+            config.captureDynamicRange = .SDR
+        }
 
         // Set output dimensions - required for proper capture
         config.width = Int(contentSize.width)
@@ -227,17 +256,6 @@ final class CaptureEngine: NSObject {
         // Presenter Overlay: always show the alert so the user knows overlay is available
         if settings.presenterOverlayEnabled {
             config.presenterOverlayPrivacyAlertSetting = .always
-        }
-        if settings.captureHDR && settings.videoCodec.supportsHDR {
-            // Use 10-bit 4:2:0 YCbCr for HDR. ScreenCaptureKit is optimized for this format.
-            config.pixelFormat = kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
-            // Use canonical display to optimize HDR content for playback on other devices,
-            // and explicitly request the HLG color space to match AVAssetWriter tags.
-            config.captureDynamicRange = .hdrCanonicalDisplay
-            config.colorSpaceName = CGColorSpace.itur_2100_HLG
-        } else {            // SDR: Use 8-bit BGRA format
-            config.pixelFormat = kCVPixelFormatType_32BGRA
-            config.captureDynamicRange = .SDR
         }
 
         return config

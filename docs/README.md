@@ -14,6 +14,7 @@ How Apple's ScreenCaptureKit and AVFoundation frameworks work together for scree
 
 - [Overview:](screen-capture-kit/OVERVIEW.md) Key classes (`SCStream`, `SCStreamConfiguration`, `AVAssetWriter`, etc.), class relationships, and the capture-to-disk pipeline.
 - [Configuration Reference:](screen-capture-kit/CONFIGURATION.md) How `SCStreamConfiguration` properties map to video/audio concepts. How SCK and AVFoundation settings must align.
+- [HDR Capture Reference:](screen-capture-kit/HDR.md) ScreenCaptureKit HDR configuration, presets, encoding constraints, pitfalls, and verification.
 
 ## Architecture
 
@@ -24,7 +25,6 @@ How BetterCapture is built. Component structure, data flow, and implementation d
 
 ## Specifications
 
-- [App Specification:](SPEC.md) UI design, functional requirements, configuration defaults.
 - [Feature Specs:](specs/) Detailed specifications for individual features.
 
 ## Process
