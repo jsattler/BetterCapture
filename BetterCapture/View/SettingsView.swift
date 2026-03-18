@@ -63,7 +63,7 @@ struct VideoSettingsView: View {
         }
     }
     
-    private let captureNativeResHelpText = "Choose between the Native resolution of your display or the Logical (1x) resolution"
+    private let captureNativeResHelpText = "When enabled, captures at the display's native pixel resolution. When disabled, captures at the logical (1x) resolution. Has no effect on non-Retina displays"
 
     var body: some View {
         Form {
@@ -111,7 +111,7 @@ struct VideoSettingsView: View {
                     .disabled(!settings.videoCodec.supportsHDR)
                     .help(hdrHelpText)
                 
-                Toggle("Capture Native Resolution", isOn: $settings.captureNativeResolution)
+                Toggle("Native Resolution", isOn: $settings.captureNativeResolution)
                     .help(captureNativeResHelpText)
             }
 
