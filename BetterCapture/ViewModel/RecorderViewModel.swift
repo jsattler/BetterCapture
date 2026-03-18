@@ -366,11 +366,17 @@ final class RecorderViewModel {
     // MARK: - Helper Methods
 
     private func getContentSize(from filter: SCContentFilter) async -> CGSize {
+        // Apply scale if Capture Native Resolution setting is enabled
+        let applyScale: Bool = settings.captureNativeResolution
+
         // If area selection is active, use the source rect dimensions.
         // The sourceRect is already snapped to even pixel counts in presentAreaSelection().
         if let sourceRect = selectedSourceRect {
             let scale = CGFloat(filter.pointPixelScale)
-            return CGSize(width: sourceRect.width * scale, height: sourceRect.height * scale)
+            return CGSize(
+                width: applyScale ? sourceRect.width * scale : sourceRect.width,
+                height: applyScale ? sourceRect.height * scale : sourceRect.height
+            )
         }
 
         // Get the content rect from the filter
@@ -379,16 +385,16 @@ final class RecorderViewModel {
 
         if rect.width > 0 && rect.height > 0 {
             return CGSize(
-                width: rect.width * scale,
-                height: rect.height * scale
+                width:  applyScale ? rect.width * scale : rect.width,
+                height: applyScale ? rect.height * scale: rect.height
             )
         }
 
         // Fallback to main screen size
         if let screen = NSScreen.main {
             return CGSize(
-                width: screen.frame.width * screen.backingScaleFactor,
-                height: screen.frame.height * screen.backingScaleFactor
+                width: applyScale ? screen.frame.width * screen.backingScaleFactor : screen.frame.width,
+                height: applyScale ? screen.frame.height * screen.backingScaleFactor : screen.frame.height
             )
         }
 

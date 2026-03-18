@@ -238,6 +238,17 @@ enum HDRPreset {
 @MainActor
 @Observable
 final class SettingsStore {
+    
+    init() {
+        registerDefaultSettings()
+    }
+    
+    func registerDefaultSettings() {
+        // Add default values for settings here
+        UserDefaults.standard.register(defaults: [
+            "captureNativeResolution": true
+        ])
+    }
 
     // MARK: - Video Settings
 
@@ -368,6 +379,18 @@ final class SettingsStore {
             // HEVC alpha and HDR are mutually exclusive
             if newValue && videoCodec == .hevc {
                 captureAlphaChannel = false
+            }
+        }
+    }
+    
+    var captureNativeResolution: Bool {
+        get {
+            access(keyPath: \.captureNativeResolution)
+            return UserDefaults.standard.bool(forKey: "captureNativeResolution")
+        }
+        set {
+            withMutation(keyPath: \.captureNativeResolution) {
+                UserDefaults.standard.set(newValue, forKey: "captureNativeResolution")
             }
         }
     }

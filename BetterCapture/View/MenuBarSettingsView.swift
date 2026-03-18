@@ -487,6 +487,12 @@ struct VideoSettingsSection: View {
                 isOn: $settings.captureHDR,
                 isDisabled: !settings.videoCodec.supportsHDR
             )
+            
+            // Capture Native Resolution Toggle
+            MenuBarToggle(
+                name: "Capture Native Resolution",
+                isOn: $settings.captureNativeResolution
+            )
         }
     }
 }
