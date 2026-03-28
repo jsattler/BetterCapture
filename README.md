@@ -58,6 +58,7 @@ Special thanks to these projects for their excellent work and inspiration:
 
 - [**QuickRecorder**](https://github.com/lihaoyun6/QuickRecorder)
 - [**Azayaka**](https://github.com/Mnpn/Azayaka)
+- [**Ghostty**](https://github.com/ghostty-org/ghostty)
 
 ## License
 
