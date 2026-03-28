@@ -26,7 +26,7 @@ bitrate = width * height * bitsPerPixel * frameRate
 | Quality | H.264 bpp | HEVC bpp |
 | ------- | --------- | -------- |
 | Low     | 0.04      | 0.02     |
-| Medium  | 0.15      | 0.10     |
+| Medium  | 0.20      | 0.15     |
 | High    | 0.60      | 0.40     |
 
 HEVC uses lower bpp values because it achieves comparable visual quality at roughly half the bitrate of H.264.

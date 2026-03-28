@@ -14,7 +14,7 @@ struct VideoQualityTests {
 
     @Test func h264BitsPerPixel() {
         #expect(VideoQuality.low.h264BitsPerPixel == 0.04)
-        #expect(VideoQuality.medium.h264BitsPerPixel == 0.15)
+        #expect(VideoQuality.medium.h264BitsPerPixel == 0.2)
         #expect(VideoQuality.high.h264BitsPerPixel == 0.6)
     }
 
@@ -22,7 +22,7 @@ struct VideoQualityTests {
 
     @Test func hevcBitsPerPixel() {
         #expect(VideoQuality.low.hevcBitsPerPixel == 0.02)
-        #expect(VideoQuality.medium.hevcBitsPerPixel == 0.1)
+        #expect(VideoQuality.medium.hevcBitsPerPixel == 0.15)
         #expect(VideoQuality.high.hevcBitsPerPixel == 0.4)
     }
 
@@ -30,13 +30,13 @@ struct VideoQualityTests {
 
     @Test func bitsPerPixelForH264() {
         #expect(VideoQuality.low.bitsPerPixel(for: .h264) == 0.04)
-        #expect(VideoQuality.medium.bitsPerPixel(for: .h264) == 0.15)
+        #expect(VideoQuality.medium.bitsPerPixel(for: .h264) == 0.2)
         #expect(VideoQuality.high.bitsPerPixel(for: .h264) == 0.6)
     }
 
     @Test func bitsPerPixelForHEVC() {
         #expect(VideoQuality.low.bitsPerPixel(for: .hevc) == 0.02)
-        #expect(VideoQuality.medium.bitsPerPixel(for: .hevc) == 0.1)
+        #expect(VideoQuality.medium.bitsPerPixel(for: .hevc) == 0.15)
         #expect(VideoQuality.high.bitsPerPixel(for: .hevc) == 0.4)
     }
 

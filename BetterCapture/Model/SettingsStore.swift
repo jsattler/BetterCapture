@@ -191,7 +191,7 @@ enum VideoQuality: String, CaseIterable, Identifiable {
     var h264BitsPerPixel: Double {
         switch self {
         case .low:    0.04
-        case .medium: 0.15
+        case .medium: 0.2
         case .high:   0.6
         }
     }
@@ -200,7 +200,7 @@ enum VideoQuality: String, CaseIterable, Identifiable {
     var hevcBitsPerPixel: Double {
         switch self {
         case .low:    0.02
-        case .medium: 0.1
+        case .medium: 0.15
         case .high:   0.4
         }
     }
