@@ -4,7 +4,10 @@ BetterCapture-specific output configuration: how resolution, bitrate, codecs, pi
 
 ## Resolution
 
-BetterCapture always captures at the native (Retina) pixel resolution. It reads `SCContentFilter.pointPixelScale` (or `NSScreen.backingScaleFactor` as a fallback) and multiplies the logical dimensions by that factor. A display set to 1024x666 produces a 2048x1332 video.
+BetterCapture supports two capture resolutions, controlled by the **Capture Native Resolution** setting (enabled by default):
+
+- **Native (Retina):** Multiplies the logical dimensions by `SCContentFilter.pointPixelScale` (or `NSScreen.backingScaleFactor` as a fallback). A display set to 1024x666 produces a 2048x1332 video.
+- **Logical (1x):** Uses the logical point dimensions directly. A display set to 1024x666 produces a 1024x666 video.
 
 Dimensions are snapped to even pixel counts (`ceil(value / 2) * 2`) for H.264 and HEVC codec compatibility.
 
@@ -22,9 +25,9 @@ bitrate = width * height * bitsPerPixel * frameRate
 
 | Quality | H.264 bpp | HEVC bpp |
 | ------- | --------- | -------- |
-| Low     | 0.05      | 0.03     |
-| Medium  | 0.10      | 0.06     |
-| High    | 0.20      | 0.10     |
+| Low     | 0.04      | 0.02     |
+| Medium  | 0.15      | 0.10     |
+| High    | 0.60      | 0.40     |
 
 HEVC uses lower bpp values because it achieves comparable visual quality at roughly half the bitrate of H.264.
 

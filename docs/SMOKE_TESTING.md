@@ -98,7 +98,7 @@ This document outlines the manual testing matrix for BetterCapture. These tests 
 
 ### Known Limitations
 
-- HDR recording requires ProRes 422/4444
+- HDR recording requires HEVC, ProRes 422, or ProRes 4444 (H.264 does not support HDR)
 - Alpha channel requires HEVC or ProRes 4444 with MOV container
 - PCM audio requires MOV container
 - MP4 container supports H.264/HEVC only, no alpha
