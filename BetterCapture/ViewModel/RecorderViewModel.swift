@@ -126,6 +126,24 @@ final class RecorderViewModel {
 
     // MARK: - Public Methods
 
+    /// Toggles the recording state. If no content is selected, triggers the appropriate
+    /// selection flow based on the user's content selection mode preference.
+    func toggleRecording() async {
+        if isRecording {
+            await stopRecording()
+        } else if hasContentSelected {
+            await startRecording()
+        } else {
+            // No content selected — trigger selection based on the user's preferred mode
+            switch ContentSelectionMode.current {
+            case .pickContent:
+                presentPicker()
+            case .selectArea:
+                await presentAreaSelection()
+            }
+        }
+    }
+
     /// Presents the system content sharing picker
     func presentPicker() {
         captureEngine.presentPicker()
@@ -206,24 +224,15 @@ final class RecorderViewModel {
         }
     }
 
-    /// Dismisses the recording overlay without starting a recording.
-    func dismissOverlay() {
-        recordingOverlay.dismiss()
-    }
-
-    /// Called by the recording overlay's "Start Recording" button.
-    /// Dismisses the overlay and starts recording.
-    func startRecordingFromOverlay() async {
-        recordingOverlay.dismiss()
-        await startRecording()
-    }
-
     /// Starts a new recording session
     func startRecording() async {
         guard canStartRecording else {
             logger.warning("Cannot start recording: no content selected or already recording")
             return
         }
+
+        // Dismiss the recording overlay if it's still visible
+        recordingOverlay.dismiss()
 
         do {
             state = .recording
@@ -259,6 +268,11 @@ final class RecorderViewModel {
             // Start capture with the calculated video size
             logger.info("Starting capture engine...")
             try await captureEngine.startCapture(with: settings, videoSize: videoSize, sourceRect: selectedSourceRect)
+
+            // Re-show the area selection border now that capture has started
+            if isAreaSelection, let screenRect = selectedScreenRect {
+                selectionBorderFrame.show(screenRect: screenRect)
+            }
 
             // Start timer
             startTimer()
@@ -313,11 +327,6 @@ final class RecorderViewModel {
             notificationService.sendRecordingFailedNotification(error: error)
             logger.error("Failed to stop recording: \(error.localizedDescription)")
         }
-    }
-
-    /// Clears the current content selection
-    func clearSelection() {
-        captureEngine.clearSelection()
     }
 
     /// Resets the area selection, removing the border frame and clearing state

@@ -241,28 +241,6 @@ struct RecordingButton: View {
     }
 }
 
-// MARK: - Content Selection Mode
-
-/// The mode for content selection: picking content via the system picker, or drawing a screen area
-enum ContentSelectionMode: String {
-    case pickContent
-    case selectArea
-
-    var label: String {
-        switch self {
-        case .pickContent: "Pick Content"
-        case .selectArea: "Select Area"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .pickContent: "macwindow"
-        case .selectArea: "rectangle.dashed"
-        }
-    }
-}
-
 // MARK: - Content Selection Button
 
 /// A split button that triggers the active content selection mode, with a dropdown chevron to switch modes.
@@ -271,7 +249,7 @@ enum ContentSelectionMode: String {
 struct ContentSelectionButton: View {
     let viewModel: RecorderViewModel
     var onDismissPanel: (() -> Void)?
-    @AppStorage("contentSelectionMode") private var mode: ContentSelectionMode = .pickContent
+    @AppStorage(ContentSelectionMode.storageKey) private var mode: ContentSelectionMode = .pickContent
     @State private var isDropdownExpanded = false
     @State private var isMainHovered = false
     @State private var isChevronHovered = false

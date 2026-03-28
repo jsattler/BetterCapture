@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6C5C123D2F3893FE0082CE23 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6C0990E12F2BE0C200D48100 /* Sparkle */; };
+		6CA1B0012F8700000082CE23 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 6CA1B0002F8700000082CE23 /* KeyboardShortcuts */; };
 		6C7AABCC2F783CC3006496CE /* BetterCapture.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 6C7AABCB2F783CC3006496CE /* BetterCapture.xctestplan */; };
 /* End PBXBuildFile section */
 
@@ -59,6 +60,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6C5C123D2F3893FE0082CE23 /* Sparkle in Frameworks */,
+				6CA1B0012F8700000082CE23 /* KeyboardShortcuts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +114,7 @@
 			name = BetterCapture;
 			packageProductDependencies = (
 				6C0990E12F2BE0C200D48100 /* Sparkle */,
+				6CA1B0002F8700000082CE23 /* KeyboardShortcuts */,
 			);
 			productName = BetterCapture;
 			productReference = 6C0990AF2F2BE0C100D48100 /* BetterCapture.app */;
@@ -170,6 +173,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				6C0990E02F2BE0C200D48100 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				6CA1AFFF2F8700000082CE23 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6C0990B02F2BE0C100D48100 /* Products */;
@@ -505,6 +509,14 @@
 				minimumVersion = 2.7.0;
 			};
 		};
+		6CA1AFFF2F8700000082CE23 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -512,6 +524,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6C0990E02F2BE0C200D48100 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		6CA1B0002F8700000082CE23 /* KeyboardShortcuts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6CA1AFFF2F8700000082CE23 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			productName = KeyboardShortcuts;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import KeyboardShortcuts
 import SwiftUI
 
 /// The settings window for BetterCapture
@@ -26,8 +27,37 @@ struct SettingsView: View {
             Tab("Audio", systemImage: "waveform") {
                 AudioSettingsView(settings: settings)
             }
+
+            Tab("Shortcuts", systemImage: "keyboard") {
+                ShortcutsSettingsView()
+            }
         }
         .frame(width: 500, height: 420)
+    }
+}
+
+// MARK: - Shortcuts Settings
+
+struct ShortcutsSettingsView: View {
+    var body: some View {
+        Form {
+            Section("Recording") {
+                KeyboardShortcuts.Recorder("Toggle Recording", name: .toggleRecording)
+            }
+
+            Section("Content Selection") {
+                KeyboardShortcuts.Recorder("Select Content", name: .selectContent)
+                KeyboardShortcuts.Recorder("Select Area", name: .selectArea)
+            }
+
+            Section {
+                Text("Shortcuts work globally, even when BetterCapture is not focused.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+        .padding()
     }
 }
 
