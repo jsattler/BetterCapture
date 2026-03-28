@@ -58,7 +58,7 @@ struct MenuBarView: View {
             MenuBarDivider()
 
             // Content Selection
-            ContentSelectionButton(viewModel: viewModel, onDismissPanel: { dismiss() })
+            ContentSelectionButton(viewModel: viewModel) { dismiss() }
                 .disabled(isRecording)
 
             // Preview thumbnail
@@ -152,7 +152,7 @@ struct MenuBarView: View {
 /// A styled action button for menu bar window with hover effect
 struct MenuBarActionButton: View {
     let title: String
-    var systemImage: String? = nil
+    var systemImage: String?
     var accentColor: Color = .primary
     var isDisabled: Bool = false
     let action: () -> Void

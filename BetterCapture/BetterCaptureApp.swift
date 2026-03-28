@@ -65,7 +65,7 @@ struct MenuBarLabel: View {
         let font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
         let attrs: [NSAttributedString.Key: Any] = [
             .font: font,
-            .foregroundColor: NSColor.white,
+            .foregroundColor: NSColor.white
         ]
 
         let referenceSize = (referenceText as NSString).size(withAttributes: attrs)

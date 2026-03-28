@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "D6A72634-1CDD-4C30-B6D7-ED35E89699ED",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:BetterCapture.xcodeproj",
+        "identifier" : "6C7AABC12F783B98006496CE",
+        "name" : "BetterCaptureTests"
+      }
+    }
+  ],
+  "version" : 1
+}

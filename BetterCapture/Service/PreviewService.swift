@@ -195,7 +195,7 @@ final class PreviewService: NSObject {
     }
 
     /// Converts a CMSampleBuffer to an NSImage
-    private nonisolated func createImage(from sampleBuffer: CMSampleBuffer) -> NSImage? {
+    nonisolated private func createImage(from sampleBuffer: CMSampleBuffer) -> NSImage? {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return nil
         }

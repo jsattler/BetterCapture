@@ -93,7 +93,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             let sourcePixelBufferAttributes: [String: Any] = [
                 kCVPixelBufferPixelFormatTypeKey as String: pixelFormat,
                 kCVPixelBufferWidthKey as String: Int(videoSize.width),
-                kCVPixelBufferHeightKey as String: Int(videoSize.height),
+                kCVPixelBufferHeightKey as String: Int(videoSize.height)
             ]
             pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(
                 assetWriterInput: videoInput,
@@ -198,8 +198,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                 // cause timing glitches when compositing the camera into the
                 // stream; a single bad timestamp permanently fails the writer.
                 if lastVideoPresentationTime.isValid
-                    && presentationTime <= lastVideoPresentationTime
-                {
+                    && presentationTime <= lastVideoPresentationTime {
                     return
                 }
             }
@@ -397,7 +396,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     private func createVideoSettings(from settings: SettingsStore, size: CGSize) -> [String: Any] {
         var videoSettings: [String: Any] = [
             AVVideoWidthKey: Int(size.width),
-            AVVideoHeightKey: Int(size.height),
+            AVVideoHeightKey: Int(size.height)
         ]
 
         let hdrPreset = settings.hdrPreset
@@ -429,7 +428,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             var compressionProperties: [String: Any] = [
                 AVVideoAverageBitRateKey: bitrate,
                 AVVideoExpectedSourceFrameRateKey: frameRate,
-                AVVideoMaxKeyFrameIntervalKey: Int(frameRate * 2),
+                AVVideoMaxKeyFrameIntervalKey: Int(frameRate * 2)
             ]
 
             // HEVC HDR: enforce Main 10 profile to prevent 8-bit fallback and
@@ -468,13 +467,13 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             videoSettings[AVVideoColorPropertiesKey] = [
                 AVVideoColorPrimariesKey: AVVideoColorPrimaries_ITU_R_2020,
                 AVVideoTransferFunctionKey: AVVideoTransferFunction_SMPTE_ST_2084_PQ,
-                AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_2020,
+                AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_2020
             ]
         } else {
             videoSettings[AVVideoColorPropertiesKey] = [
                 AVVideoColorPrimariesKey: AVVideoColorPrimaries_ITU_R_709_2,
                 AVVideoTransferFunctionKey: AVVideoTransferFunction_ITU_R_709_2,
-                AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_709_2,
+                AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_709_2
             ]
         }
 
@@ -524,7 +523,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                 AVFormatIDKey: kAudioFormatMPEG4AAC,
                 AVSampleRateKey: 48000,
                 AVNumberOfChannelsKey: 2,
-                AVEncoderBitRateKey: 256000,
+                AVEncoderBitRateKey: 256000
             ]
 
         case .pcm:
@@ -535,7 +534,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                 AVLinearPCMBitDepthKey: 16,
                 AVLinearPCMIsFloatKey: false,
                 AVLinearPCMIsBigEndianKey: false,
-                AVLinearPCMIsNonInterleaved: false,
+                AVLinearPCMIsNonInterleaved: false
             ]
         }
     }

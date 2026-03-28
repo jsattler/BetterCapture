@@ -43,11 +43,16 @@ final class UpdaterService {
     // MARK: - Initialization
 
     init() {
+        let hasValidKey = Bundle.main
+            .infoDictionary?["SUPublicEDKey"] as? String != "SPARKLE_PUBLIC_KEY"
+
         controller = SPUStandardUpdaterController(
-            startingUpdater: true,
+            startingUpdater: hasValidKey,
             updaterDelegate: nil,
             userDriverDelegate: nil
         )
+
+        guard hasValidKey else { return }
 
         // Observe Sparkle's canCheckForUpdates via KVO
         canCheckObservation = updater.observe(

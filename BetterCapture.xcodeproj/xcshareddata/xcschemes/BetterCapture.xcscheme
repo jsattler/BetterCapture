@@ -30,9 +30,26 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
+            reference = "container:BetterCapture.xctestplan"
+            default = "YES">
+         </TestPlanReference>
+         <TestPlanReference
             reference = "container:BetterCapture.xctestplan">
          </TestPlanReference>
       </TestPlans>
+      <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "6C7AABC12F783B98006496CE"
+               BuildableName = "BetterCaptureTests.xctest"
+               BlueprintName = "BetterCaptureTests"
+               ReferencedContainer = "container:BetterCapture.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"

@@ -6,6 +6,7 @@ on:
     paths:
       - '**.swift'
       - '**.xcodeproj/**'
+      - '**.xctestplan'
       - '.github/workflows/pull-request.yml'
 
 env:
@@ -50,6 +51,29 @@ jobs:
             -project "${{ env.APP_NAME }}.xcodeproj" \
             -scheme "${{ env.SCHEME }}" \
             -configuration Debug \
+            -destination "platform=macOS" \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify --renderer github-actions || true
+
+  test:
+    name: Test
+    runs-on: macos-26
+    needs: build
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -project "${{ env.APP_NAME }}.xcodeproj" \
+            -scheme "${{ env.SCHEME }}" \
             -destination "platform=macOS" \
             CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
