@@ -8,10 +8,23 @@
 
 /* Begin PBXBuildFile section */
 		6C5C123D2F3893FE0082CE23 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6C0990E12F2BE0C200D48100 /* Sparkle */; };
+		6C7AABCC2F783CC3006496CE /* BetterCapture.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 6C7AABCB2F783CC3006496CE /* BetterCapture.xctestplan */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		6C7AABC62F783B98006496CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6C0990A72F2BE0C100D48100 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6C0990AE2F2BE0C100D48100;
+			remoteInfo = BetterCapture;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		6C0990AF2F2BE0C100D48100 /* BetterCapture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetterCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C7AABC22F783B98006496CE /* BetterCaptureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BetterCaptureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C7AABCB2F783CC3006496CE /* BetterCapture.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = BetterCapture.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -33,6 +46,11 @@
 			path = BetterCapture;
 			sourceTree = "<group>";
 		};
+		6C7AABC32F783B98006496CE /* BetterCaptureTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BetterCaptureTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,13 +62,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6C7AABBF2F783B98006496CE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		6C0990A62F2BE0C100D48100 = {
 			isa = PBXGroup;
 			children = (
+				6C7AABCB2F783CC3006496CE /* BetterCapture.xctestplan */,
 				6C0990B12F2BE0C100D48100 /* BetterCapture */,
+				6C7AABC32F783B98006496CE /* BetterCaptureTests */,
 				6C0990B02F2BE0C100D48100 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -59,6 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				6C0990AF2F2BE0C100D48100 /* BetterCapture.app */,
+				6C7AABC22F783B98006496CE /* BetterCaptureTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -89,6 +117,29 @@
 			productReference = 6C0990AF2F2BE0C100D48100 /* BetterCapture.app */;
 			productType = "com.apple.product-type.application";
 		};
+		6C7AABC12F783B98006496CE /* BetterCaptureTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6C7AABCA2F783B98006496CE /* Build configuration list for PBXNativeTarget "BetterCaptureTests" */;
+			buildPhases = (
+				6C7AABBE2F783B98006496CE /* Sources */,
+				6C7AABBF2F783B98006496CE /* Frameworks */,
+				6C7AABC02F783B98006496CE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6C7AABC72F783B98006496CE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				6C7AABC32F783B98006496CE /* BetterCaptureTests */,
+			);
+			name = BetterCaptureTests;
+			packageProductDependencies = (
+			);
+			productName = BetterCaptureTests;
+			productReference = 6C7AABC22F783B98006496CE /* BetterCaptureTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -102,7 +153,11 @@
 					6C0990AE2F2BE0C100D48100 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
+					6C7AABC12F783B98006496CE = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 6C0990AE2F2BE0C100D48100;
 					};
+				};
 			};
 			buildConfigurationList = 6C0990AA2F2BE0C100D48100 /* Build configuration list for PBXProject "BetterCapture" */;
 			developmentRegion = en;
@@ -122,12 +177,21 @@
 			projectRoot = "";
 			targets = (
 				6C0990AE2F2BE0C100D48100 /* BetterCapture */,
+				6C7AABC12F783B98006496CE /* BetterCaptureTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		6C0990AD2F2BE0C100D48100 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6C7AABCC2F783CC3006496CE /* BetterCapture.xctestplan in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6C7AABC02F783B98006496CE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -144,9 +208,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6C7AABBE2F783B98006496CE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
-
+/* Begin PBXTargetDependency section */
+		6C7AABC72F783B98006496CE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6C0990AE2F2BE0C100D48100 /* BetterCapture */;
+			targetProxy = 6C7AABC62F783B98006496CE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		6C0990CE2F2BE0C200D48100 /* Debug */ = {
@@ -345,6 +422,48 @@
 			};
 			name = Release;
 		};
+		6C7AABC82F783B98006496CE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DMX24B5FC3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sattlerjoshua.BetterCaptureTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BetterCapture.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BetterCapture";
+			};
+			name = Debug;
+		};
+		6C7AABC92F783B98006496CE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DMX24B5FC3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sattlerjoshua.BetterCaptureTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BetterCapture.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BetterCapture";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -362,6 +481,15 @@
 			buildConfigurations = (
 				6C0990D12F2BE0C200D48100 /* Debug */,
 				6C0990D22F2BE0C200D48100 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6C7AABCA2F783B98006496CE /* Build configuration list for PBXNativeTarget "BetterCaptureTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C7AABC82F783B98006496CE /* Debug */,
+				6C7AABC92F783B98006496CE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

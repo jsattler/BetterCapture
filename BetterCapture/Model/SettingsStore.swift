@@ -234,10 +234,20 @@ enum HDRPreset {
     case hdr10PreservedSDR
 }
 
-/// Persists user preferences using AppStorage
+/// Persists user preferences using UserDefaults
 @MainActor
 @Observable
 final class SettingsStore {
+
+    // MARK: - Dependencies
+
+    private let defaults: UserDefaults
+
+    // MARK: - Initialization
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
 
     // MARK: - Video Settings
 
@@ -337,7 +347,7 @@ final class SettingsStore {
             if videoCodec == .hevc && captureHDR {
                 return false
             }
-            return UserDefaults.standard.bool(forKey: "captureAlphaChannel")
+            return defaults.bool(forKey: "captureAlphaChannel")
         }
         set {
             // Only allow alpha channel if both codec and container support it
@@ -350,7 +360,7 @@ final class SettingsStore {
             }
 
             withMutation(keyPath: \.captureAlphaChannel) {
-                UserDefaults.standard.set(finalValue, forKey: "captureAlphaChannel")
+                defaults.set(finalValue, forKey: "captureAlphaChannel")
             }
         }
     }
@@ -358,11 +368,11 @@ final class SettingsStore {
     var captureHDR: Bool {
         get {
             access(keyPath: \.captureHDR)
-            return UserDefaults.standard.bool(forKey: "captureHDR")
+            return defaults.bool(forKey: "captureHDR")
         }
         set {
             withMutation(keyPath: \.captureHDR) {
-                UserDefaults.standard.set(newValue, forKey: "captureHDR")
+                defaults.set(newValue, forKey: "captureHDR")
             }
 
             // HEVC alpha and HDR are mutually exclusive
@@ -375,11 +385,11 @@ final class SettingsStore {
     var captureNativeResolution: Bool {
         get {
             access(keyPath: \.captureNativeResolution)
-            return UserDefaults.standard.object(forKey: "captureNativeResolution") as? Bool ?? true
+            return defaults.object(forKey: "captureNativeResolution") as? Bool ?? true
         }
         set {
             withMutation(keyPath: \.captureNativeResolution) {
-                UserDefaults.standard.set(newValue, forKey: "captureNativeResolution")
+                defaults.set(newValue, forKey: "captureNativeResolution")
             }
         }
     }
@@ -401,11 +411,11 @@ final class SettingsStore {
     var captureMicrophone: Bool {
         get {
             access(keyPath: \.captureMicrophone)
-            return UserDefaults.standard.bool(forKey: "captureMicrophone")
+            return defaults.bool(forKey: "captureMicrophone")
         }
         set {
             withMutation(keyPath: \.captureMicrophone) {
-                UserDefaults.standard.set(newValue, forKey: "captureMicrophone")
+                defaults.set(newValue, forKey: "captureMicrophone")
             }
         }
     }
@@ -413,11 +423,11 @@ final class SettingsStore {
     var captureSystemAudio: Bool {
         get {
             access(keyPath: \.captureSystemAudio)
-            return UserDefaults.standard.bool(forKey: "captureSystemAudio")
+            return defaults.bool(forKey: "captureSystemAudio")
         }
         set {
             withMutation(keyPath: \.captureSystemAudio) {
-                UserDefaults.standard.set(newValue, forKey: "captureSystemAudio")
+                defaults.set(newValue, forKey: "captureSystemAudio")
             }
         }
     }
@@ -442,11 +452,11 @@ final class SettingsStore {
     var selectedMicrophoneID: String? {
         get {
             access(keyPath: \.selectedMicrophoneID)
-            return UserDefaults.standard.string(forKey: "selectedMicrophoneID")
+            return defaults.string(forKey: "selectedMicrophoneID")
         }
         set {
             withMutation(keyPath: \.selectedMicrophoneID) {
-                UserDefaults.standard.set(newValue, forKey: "selectedMicrophoneID")
+                defaults.set(newValue, forKey: "selectedMicrophoneID")
             }
         }
     }
@@ -456,11 +466,11 @@ final class SettingsStore {
     var presenterOverlayEnabled: Bool {
         get {
             access(keyPath: \.presenterOverlayEnabled)
-            return UserDefaults.standard.bool(forKey: "presenterOverlayEnabled")
+            return defaults.bool(forKey: "presenterOverlayEnabled")
         }
         set {
             withMutation(keyPath: \.presenterOverlayEnabled) {
-                UserDefaults.standard.set(newValue, forKey: "presenterOverlayEnabled")
+                defaults.set(newValue, forKey: "presenterOverlayEnabled")
             }
         }
     }
@@ -469,11 +479,11 @@ final class SettingsStore {
     var selectedCameraID: String? {
         get {
             access(keyPath: \.selectedCameraID)
-            return UserDefaults.standard.string(forKey: "selectedCameraID")
+            return defaults.string(forKey: "selectedCameraID")
         }
         set {
             withMutation(keyPath: \.selectedCameraID) {
-                UserDefaults.standard.set(newValue, forKey: "selectedCameraID")
+                defaults.set(newValue, forKey: "selectedCameraID")
             }
         }
     }
@@ -483,11 +493,11 @@ final class SettingsStore {
     var showCursor: Bool {
         get {
             access(keyPath: \.showCursor)
-            return UserDefaults.standard.object(forKey: "showCursor") as? Bool ?? true
+            return defaults.object(forKey: "showCursor") as? Bool ?? true
         }
         set {
             withMutation(keyPath: \.showCursor) {
-                UserDefaults.standard.set(newValue, forKey: "showCursor")
+                defaults.set(newValue, forKey: "showCursor")
             }
         }
     }
@@ -495,11 +505,11 @@ final class SettingsStore {
     var showWallpaper: Bool {
         get {
             access(keyPath: \.showWallpaper)
-            return UserDefaults.standard.object(forKey: "showWallpaper") as? Bool ?? true
+            return defaults.object(forKey: "showWallpaper") as? Bool ?? true
         }
         set {
             withMutation(keyPath: \.showWallpaper) {
-                UserDefaults.standard.set(newValue, forKey: "showWallpaper")
+                defaults.set(newValue, forKey: "showWallpaper")
             }
         }
     }
@@ -507,11 +517,11 @@ final class SettingsStore {
     var showMenuBar: Bool {
         get {
             access(keyPath: \.showMenuBar)
-            return UserDefaults.standard.object(forKey: "showMenuBar") as? Bool ?? true
+            return defaults.object(forKey: "showMenuBar") as? Bool ?? true
         }
         set {
             withMutation(keyPath: \.showMenuBar) {
-                UserDefaults.standard.set(newValue, forKey: "showMenuBar")
+                defaults.set(newValue, forKey: "showMenuBar")
             }
         }
     }
@@ -519,11 +529,11 @@ final class SettingsStore {
     var showDock: Bool {
         get {
             access(keyPath: \.showDock)
-            return UserDefaults.standard.object(forKey: "showDock") as? Bool ?? true
+            return defaults.object(forKey: "showDock") as? Bool ?? true
         }
         set {
             withMutation(keyPath: \.showDock) {
-                UserDefaults.standard.set(newValue, forKey: "showDock")
+                defaults.set(newValue, forKey: "showDock")
             }
         }
     }
@@ -531,11 +541,11 @@ final class SettingsStore {
     var showWindowShadows: Bool {
         get {
             access(keyPath: \.showWindowShadows)
-            return UserDefaults.standard.object(forKey: "showWindowShadows") as? Bool ?? true
+            return defaults.object(forKey: "showWindowShadows") as? Bool ?? true
         }
         set {
             withMutation(keyPath: \.showWindowShadows) {
-                UserDefaults.standard.set(newValue, forKey: "showWindowShadows")
+                defaults.set(newValue, forKey: "showWindowShadows")
             }
         }
     }
@@ -543,11 +553,11 @@ final class SettingsStore {
     var showBetterCapture: Bool {
         get {
             access(keyPath: \.showBetterCapture)
-            return UserDefaults.standard.object(forKey: "showBetterCapture") as? Bool ?? false
+            return defaults.object(forKey: "showBetterCapture") as? Bool ?? false
         }
         set {
             withMutation(keyPath: \.showBetterCapture) {
-                UserDefaults.standard.set(newValue, forKey: "showBetterCapture")
+                defaults.set(newValue, forKey: "showBetterCapture")
             }
         }
     }
@@ -563,11 +573,11 @@ final class SettingsStore {
     private var customOutputDirectoryBookmark: Data? {
         get {
             access(keyPath: \.customOutputDirectoryBookmark)
-            return UserDefaults.standard.data(forKey: "customOutputDirectoryBookmark")
+            return defaults.data(forKey: "customOutputDirectoryBookmark")
         }
         set {
             withMutation(keyPath: \.customOutputDirectoryBookmark) {
-                UserDefaults.standard.set(newValue, forKey: "customOutputDirectoryBookmark")
+                defaults.set(newValue, forKey: "customOutputDirectoryBookmark")
             }
         }
     }
@@ -661,14 +671,14 @@ final class SettingsStore {
     private var frameRateRaw: Int {
         get {
             access(keyPath: \.frameRateRaw)
-            guard UserDefaults.standard.object(forKey: "frameRate") != nil else {
+            guard defaults.object(forKey: "frameRate") != nil else {
                 return FrameRate.fps60.rawValue
             }
-            return UserDefaults.standard.integer(forKey: "frameRate")
+            return defaults.integer(forKey: "frameRate")
         }
         set {
             withMutation(keyPath: \.frameRateRaw) {
-                UserDefaults.standard.set(newValue, forKey: "frameRate")
+                defaults.set(newValue, forKey: "frameRate")
             }
         }
     }
@@ -676,11 +686,11 @@ final class SettingsStore {
     private var videoQualityRaw: String {
         get {
             access(keyPath: \.videoQualityRaw)
-            return UserDefaults.standard.string(forKey: "videoQuality") ?? VideoQuality.medium.rawValue
+            return defaults.string(forKey: "videoQuality") ?? VideoQuality.medium.rawValue
         }
         set {
             withMutation(keyPath: \.videoQualityRaw) {
-                UserDefaults.standard.set(newValue, forKey: "videoQuality")
+                defaults.set(newValue, forKey: "videoQuality")
             }
         }
     }
@@ -688,11 +698,11 @@ final class SettingsStore {
     private var videoCodecRaw: String {
         get {
             access(keyPath: \.videoCodecRaw)
-            return UserDefaults.standard.string(forKey: "videoCodec") ?? VideoCodec.hevc.rawValue
+            return defaults.string(forKey: "videoCodec") ?? VideoCodec.hevc.rawValue
         }
         set {
             withMutation(keyPath: \.videoCodecRaw) {
-                UserDefaults.standard.set(newValue, forKey: "videoCodec")
+                defaults.set(newValue, forKey: "videoCodec")
             }
         }
     }
@@ -700,11 +710,11 @@ final class SettingsStore {
     private var containerFormatRaw: String {
         get {
             access(keyPath: \.containerFormatRaw)
-            return UserDefaults.standard.string(forKey: "containerFormat") ?? ContainerFormat.mov.rawValue
+            return defaults.string(forKey: "containerFormat") ?? ContainerFormat.mov.rawValue
         }
         set {
             withMutation(keyPath: \.containerFormatRaw) {
-                UserDefaults.standard.set(newValue, forKey: "containerFormat")
+                defaults.set(newValue, forKey: "containerFormat")
             }
         }
     }
@@ -712,11 +722,11 @@ final class SettingsStore {
     private var audioCodecRaw: String {
         get {
             access(keyPath: \.audioCodecRaw)
-            return UserDefaults.standard.string(forKey: "audioCodec") ?? AudioCodec.aac.rawValue
+            return defaults.string(forKey: "audioCodec") ?? AudioCodec.aac.rawValue
         }
         set {
             withMutation(keyPath: \.audioCodecRaw) {
-                UserDefaults.standard.set(newValue, forKey: "audioCodec")
+                defaults.set(newValue, forKey: "audioCodec")
             }
         }
     }
