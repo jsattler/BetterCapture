@@ -8,10 +8,10 @@
 import SwiftUI
 
 /// The SwiftUI content view hosted inside the recording overlay panel.
-/// Shows a live preview and two action buttons: Start Recording and Cancel.
+/// Shows a live preview and two action buttons: Start Recording and Dismiss.
 struct RecordingOverlayView: View {
     let viewModel: RecorderViewModel
-    let onCancel: () -> Void
+    let onDismiss: () -> Void
 
     @State private var currentPreview: NSImage?
 
@@ -75,15 +75,15 @@ struct RecordingOverlayView: View {
         VStack(spacing: 6) {
             Button("Start Recording", systemImage: "record.circle") {
                 Task {
-                    await viewModel.startRecordingFromOverlay()
+                    await viewModel.startRecording()
                 }
             }
             .buttonStyle(OverlayButtonStyle(labelColor: .green, weight: .semibold))
 
-            Button("Cancel") {
-                onCancel()
+            Button("Dismiss") {
+                onDismiss()
             }
-            .buttonStyle(OverlayButtonStyle(labelColor: .red, weight: .medium))
+            .buttonStyle(OverlayButtonStyle(labelColor: .secondary, weight: .medium))
         }
         .padding(.top, 10)
     }
