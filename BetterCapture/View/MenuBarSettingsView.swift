@@ -190,7 +190,7 @@ struct PickerOptionRow: View {
     let label: String
     let isSelected: Bool
     var isDisabled: Bool = false
-    var disabledMessage: String? = nil
+    var disabledMessage: String?
     let onSelect: () -> Void
     @State private var isHovered = false
 

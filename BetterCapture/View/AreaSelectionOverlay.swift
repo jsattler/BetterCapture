@@ -510,7 +510,7 @@ final class AreaSelectionView: NSView {
             cancel.topAnchor.constraint(equalTo: confirm.bottomAnchor, constant: 8),
             cancel.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             cancel.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            cancel.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            cancel.bottomAnchor.constraint(equalTo: container.bottomAnchor)
         ])
 
         self.confirmButton = confirm
@@ -578,7 +578,7 @@ final class AreaSelectionView: NSView {
             .right: CGRect(x: rect.maxX - half, y: rect.midY - half, width: size, height: size),
             .bottomLeft: CGRect(x: rect.minX - half, y: rect.minY - half, width: size, height: size),
             .bottom: CGRect(x: rect.midX - half, y: rect.minY - half, width: size, height: size),
-            .bottomRight: CGRect(x: rect.maxX - half, y: rect.minY - half, width: size, height: size),
+            .bottomRight: CGRect(x: rect.maxX - half, y: rect.minY - half, width: size, height: size)
         ]
     }
 

@@ -21,7 +21,7 @@ struct ErrorTests {
             .failedToStartWriting(nil),
             .writingFailed(nil),
             .noOutputURL,
-            .noFramesWritten,
+            .noFramesWritten
         ]
 
         for error in cases {
@@ -48,7 +48,7 @@ struct ErrorTests {
             .failedToCreateStream,
             .captureAlreadyRunning,
             .screenRecordingPermissionDenied,
-            .microphonePermissionDenied,
+            .microphonePermissionDenied
         ]
 
         for error in cases {

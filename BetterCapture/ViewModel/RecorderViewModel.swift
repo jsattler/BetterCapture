@@ -385,7 +385,7 @@ final class RecorderViewModel {
 
         if rect.width > 0 && rect.height > 0 {
             return CGSize(
-                width:  applyScale ? rect.width * scale : rect.width,
+                width: applyScale ? rect.width * scale : rect.width,
                 height: applyScale ? rect.height * scale : rect.height
             )
         }

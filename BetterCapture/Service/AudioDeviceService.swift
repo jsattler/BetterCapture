@@ -46,7 +46,6 @@ final class AudioDeviceService {
             position: .unspecified
         )
 
-
         availableDevices = discoverySession.devices.map { device in
             AudioInputDevice(
                 id: device.uniqueID,

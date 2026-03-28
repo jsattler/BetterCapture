@@ -18,44 +18,44 @@ struct RecorderViewModelTests {
     // MARK: - formattedDuration
 
     @Test func formattedDurationAtZero() {
-        let vm = RecorderViewModel()
-        #expect(vm.formattedDuration == "00:00")
+        let viewModel = RecorderViewModel()
+        #expect(viewModel.formattedDuration == "00:00")
     }
 
     // MARK: - Initial State
 
     @Test func initialStateIsIdle() {
-        let vm = RecorderViewModel()
-        #expect(vm.isRecording == false)
+        let viewModel = RecorderViewModel()
+        #expect(viewModel.isRecording == false)
     }
 
     @Test func cannotStartRecordingWithoutContentFilter() {
-        let vm = RecorderViewModel()
-        #expect(vm.canStartRecording == false)
+        let viewModel = RecorderViewModel()
+        #expect(viewModel.canStartRecording == false)
     }
 
     @Test func hasNoContentSelectedByDefault() {
-        let vm = RecorderViewModel()
-        #expect(vm.hasContentSelected == false)
+        let viewModel = RecorderViewModel()
+        #expect(viewModel.hasContentSelected == false)
     }
 
     @Test func isNotAreaSelectionByDefault() {
-        let vm = RecorderViewModel()
-        #expect(vm.isAreaSelection == false)
+        let viewModel = RecorderViewModel()
+        #expect(viewModel.isAreaSelection == false)
     }
 
     @Test func presenterOverlayInactiveByDefault() {
-        let vm = RecorderViewModel()
-        #expect(vm.isPresenterOverlayActive == false)
+        let viewModel = RecorderViewModel()
+        #expect(viewModel.isPresenterOverlayActive == false)
     }
 
     @Test func lastErrorIsNilByDefault() {
-        let vm = RecorderViewModel()
-        #expect(vm.lastError == nil)
+        let viewModel = RecorderViewModel()
+        #expect(viewModel.lastError == nil)
     }
 
     @Test func recordingDurationIsZeroByDefault() {
-        let vm = RecorderViewModel()
-        #expect(vm.recordingDuration == 0)
+        let viewModel = RecorderViewModel()
+        #expect(viewModel.recordingDuration == 0)
     }
 }

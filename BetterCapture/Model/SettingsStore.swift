@@ -91,8 +91,8 @@ enum VideoCodec: String, CaseIterable, Identifiable {
 
 /// Container format for output files
 enum ContainerFormat: String, CaseIterable, Identifiable {
-    case mov = "mov"
-    case mp4 = "mp4"
+    case mov
+    case mp4
 
     var id: String { rawValue }
 
@@ -381,7 +381,7 @@ final class SettingsStore {
             }
         }
     }
-    
+
     var captureNativeResolution: Bool {
         get {
             access(keyPath: \.captureNativeResolution)
