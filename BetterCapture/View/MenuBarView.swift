@@ -144,6 +144,7 @@ struct MenuBarView: View {
             .padding(.bottom, 8)
         }
         .frame(width: 320)
+        .background(.ultraThinMaterial)
     }
 }
 
