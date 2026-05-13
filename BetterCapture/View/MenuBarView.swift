@@ -61,6 +61,17 @@ struct MenuBarView: View {
             ContentSelectionButton(viewModel: viewModel) { dismiss() }
                 .disabled(isRecording)
 
+            if viewModel.canResizeSelectedWindow {
+                WindowResizeMenu(viewModel: viewModel)
+                    .disabled(isRecording)
+            }
+
+            if let status = viewModel.windowResizeStatus {
+                WindowResizeStatusRow(status: status) {
+                    viewModel.openAccessibilitySettings()
+                }
+            }
+
             // Preview thumbnail
             if viewModel.hasContentSelected {
                 PreviewThumbnailView(
@@ -145,6 +156,133 @@ struct MenuBarView: View {
         }
         .frame(width: 320)
         .background(.ultraThinMaterial)
+    }
+}
+
+// MARK: - Window Resize Menu
+
+struct WindowResizeMenu: View {
+    let viewModel: RecorderViewModel
+    @State private var isExpanded = false
+    @State private var isHovered = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(.gray.opacity(0.2))
+                            .frame(width: 24, height: 24)
+
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.primary)
+                    }
+
+                    Text("Resize")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    if let sizeLabel = viewModel.selectedWindowSizeLabel {
+                        Text(sizeLabel)
+                            .font(.system(size: 13))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(isHovered ? .gray.opacity(0.1) : .clear)
+                    .padding(.horizontal, 4)
+            )
+            .onHover { hovering in
+                isHovered = hovering
+            }
+
+            if isExpanded {
+                VStack(spacing: 0) {
+                    ForEach(WindowResizePreset.allCases) { preset in
+                        PickerOptionRow(
+                            label: preset.label,
+                            isSelected: false
+                        ) {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                isExpanded = false
+                            }
+
+                            Task {
+                                await viewModel.resizeSelectedWindow(to: preset)
+                            }
+                        }
+                    }
+                }
+                .padding(.leading, 12)
+                .background(.quaternary.opacity(0.3))
+            }
+        }
+    }
+}
+
+struct WindowResizeStatusRow: View {
+    let status: RecorderViewModel.WindowResizeStatus
+    let onOpenAccessibilitySettings: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: systemImage)
+                .font(.system(size: 12))
+                .foregroundStyle(tint)
+
+            Text(status.message)
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+
+            Spacer()
+
+            if status.canOpenAccessibilitySettings {
+                Button("Open Settings", action: onOpenAccessibilitySettings)
+                    .font(.system(size: 12))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.blue)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+    }
+
+    private var systemImage: String {
+        switch status {
+        case .success:
+            "checkmark.circle.fill"
+        case .failure, .accessibilityPermissionMissing:
+            "exclamationmark.triangle.fill"
+        }
+    }
+
+    private var tint: Color {
+        switch status {
+        case .success:
+            .green
+        case .failure, .accessibilityPermissionMissing:
+            .orange
+        }
     }
 }
 

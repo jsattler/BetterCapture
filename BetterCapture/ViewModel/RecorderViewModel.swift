@@ -23,12 +23,34 @@ final class RecorderViewModel {
         case stopping
     }
 
+    enum WindowResizeStatus: Equatable {
+        case success(String)
+        case failure(String)
+        case accessibilityPermissionMissing(String)
+
+        var message: String {
+            switch self {
+            case .success(let message), .failure(let message), .accessibilityPermissionMissing(let message):
+                message
+            }
+        }
+
+        var canOpenAccessibilitySettings: Bool {
+            if case .accessibilityPermissionMissing = self {
+                return true
+            }
+
+            return false
+        }
+    }
+
     // MARK: - Published Properties
 
     private(set) var state: RecordingState = .idle
     private(set) var recordingDuration: TimeInterval = 0
     private(set) var lastError: Error?
     private(set) var selectedContentFilter: SCContentFilter?
+    private(set) var windowResizeStatus: WindowResizeStatus?
 
     /// The source rectangle for area selection (in display points, top-left origin)
     private(set) var selectedSourceRect: CGRect?
@@ -56,6 +78,18 @@ final class RecorderViewModel {
         selectedContentFilter != nil
     }
 
+    var canResizeSelectedWindow: Bool {
+        selectedWindowForResize != nil && state == .idle
+    }
+
+    var selectedWindowSizeLabel: String? {
+        guard let window = selectedWindowForResize else { return nil }
+
+        let width = Int(window.frame.width.rounded())
+        let height = Int(window.frame.height.rounded())
+        return "\(width)x\(height)"
+    }
+
     var formattedDuration: String {
         let hours = Int(recordingDuration) / 3600
         let minutes = (Int(recordingDuration) % 3600) / 60
@@ -80,6 +114,7 @@ final class RecorderViewModel {
     let notificationService: NotificationService
     let permissionService: PermissionService
     private let captureEngine: CaptureEngine
+    private let windowResizeService: WindowResizeService
     private let assetWriter: AssetWriter
     private let cameraSession = CameraSession()
 
@@ -104,6 +139,7 @@ final class RecorderViewModel {
         self.notificationService = NotificationService(settings: settings)
         self.permissionService = PermissionService()
         self.captureEngine = CaptureEngine()
+        self.windowResizeService = WindowResizeService()
         self.assetWriter = AssetWriter()
 
         captureEngine.delegate = self
@@ -146,11 +182,14 @@ final class RecorderViewModel {
 
     /// Presents the system content sharing picker
     func presentPicker() {
+        windowResizeStatus = nil
         captureEngine.presentPicker()
     }
 
     /// Presents the area selection overlay on the display under the cursor
     func presentAreaSelection() async {
+        windowResizeStatus = nil
+
         // Dismiss any existing border frame so it doesn't overlap the selection overlay
         selectionBorderFrame.dismiss()
 
@@ -335,10 +374,45 @@ final class RecorderViewModel {
         selectedScreenRect = nil
         selectedScreen = nil
         selectedContentFilter = nil
+        windowResizeStatus = nil
         selectionBorderFrame.dismiss()
         recordingOverlay.dismiss()
         await previewService.stopPreview()
         previewService.clearPreview()
+    }
+
+    /// Resizes the currently selected single-window capture target.
+    func resizeSelectedWindow(to preset: WindowResizePreset) async {
+        guard let window = selectedWindowForResize else {
+            windowResizeStatus = .failure("Select a single window before resizing.")
+            return
+        }
+
+        do {
+            windowResizeStatus = nil
+            lastError = nil
+
+            _ = try windowResizeService.resize(window, to: preset)
+            await refreshSelectedWindowFilterIfAvailable(windowID: window.windowID)
+
+            windowResizeStatus = .success("Resized to \(preset.label)")
+            logger.info("Resized selected window to \(preset.label)")
+        } catch {
+            lastError = error
+            if let resizeError = error as? WindowResizeError,
+               case .accessibilityPermissionMissing = resizeError {
+                windowResizeStatus = .accessibilityPermissionMissing(error.localizedDescription)
+            } else {
+                windowResizeStatus = .failure(error.localizedDescription)
+            }
+            logger.error("Failed to resize selected window: \(error.localizedDescription)")
+        }
+    }
+
+    func openAccessibilitySettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     /// Starts the live preview stream (call when menu bar window opens)
@@ -373,6 +447,42 @@ final class RecorderViewModel {
     }
 
     // MARK: - Helper Methods
+
+    private var selectedWindowForResize: SCWindow? {
+        guard !isAreaSelection,
+              let windows = selectedContentFilter?.includedWindows,
+              windows.count == 1 else {
+            return nil
+        }
+
+        return windows[0]
+    }
+
+    private func currentWindow(windowID: CGWindowID) async throws -> SCWindow {
+        let content = try await SCShareableContent.current
+
+        guard let window = content.windows.first(where: { $0.windowID == windowID }) else {
+            throw WindowResizeError.windowUnavailable
+        }
+
+        return window
+    }
+
+    private func refreshSelectedWindowFilter(windowID: CGWindowID) async throws {
+        let window = try await currentWindow(windowID: windowID)
+        let filter = SCContentFilter(desktopIndependentWindow: window)
+        selectedContentFilter = filter
+        try await captureEngine.updateFilter(filter)
+        await previewService.setContentFilter(filter)
+    }
+
+    private func refreshSelectedWindowFilterIfAvailable(windowID: CGWindowID) async {
+        do {
+            try await refreshSelectedWindowFilter(windowID: windowID)
+        } catch {
+            logger.warning("Could not refresh resized window filter: \(error.localizedDescription)")
+        }
+    }
 
     private func getContentSize(from filter: SCContentFilter) async -> CGSize {
         // Apply scale if Capture Native Resolution setting is enabled
@@ -420,6 +530,7 @@ extension RecorderViewModel: CaptureEngineDelegate {
         selectedSourceRect = nil
         selectedScreenRect = nil
         selectedScreen = nil
+        windowResizeStatus = nil
         selectionBorderFrame.dismiss()
 
         selectedContentFilter = filter
@@ -472,6 +583,7 @@ extension RecorderViewModel: CaptureEngineDelegate {
 
         // Clear the selected content filter
         selectedContentFilter = nil
+        windowResizeStatus = nil
 
         // Dismiss the overlay if it was shown after a previous selection
         recordingOverlay.dismiss()
@@ -493,6 +605,7 @@ extension RecorderViewModel: PreviewServiceDelegate {
 
         // Clear the selection
         selectedContentFilter = nil
+        windowResizeStatus = nil
 
         // Clear the content filter in capture engine and deactivate picker
         captureEngine.clearSelection()
