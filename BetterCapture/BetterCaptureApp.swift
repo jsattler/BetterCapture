@@ -42,10 +42,11 @@ struct BetterCaptureApp: App {
         guard url.scheme == "bettercapture" else { return }
 
         switch url.host {
-        case "toggle":
+        case "toggle", "toggle-copy":
+            let copyToClipboard = url.host == "toggle-copy"
             Task { @MainActor in
                 if viewModel.isRecording {
-                    await viewModel.stopRecording()
+                    await viewModel.stopRecording(copyToClipboard: copyToClipboard)
                 } else {
                     switch ContentSelectionMode.current {
                     case .pickContent:

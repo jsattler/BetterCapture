@@ -53,6 +53,7 @@ BetterCapture supports a custom URL scheme for external tools (Raycast, Shortcut
 | URL | Action |
 |---|---|
 | `bettercapture://toggle` | Stop recording if active; otherwise open content selection (Pick Content or Select Area) before recording |
+| `bettercapture://toggle-copy` | Same as `toggle`, but copies the saved recording to the clipboard when stopping |
 | `bettercapture://open-recordings` | Open the output folder in Finder |
 
 Example:

@@ -305,7 +305,7 @@ final class RecorderViewModel {
     }
 
     /// Stops the current recording session
-    func stopRecording() async {
+    func stopRecording(copyToClipboard: Bool = false) async {
         guard isRecording else { return }
 
         state = .stopping
@@ -336,6 +336,10 @@ final class RecorderViewModel {
                 notificationService.sendRecordingMissingVideoNotification(fileURL: outputURL)
             } else {
                 notificationService.sendRecordingSavedNotification(fileURL: outputURL)
+            }
+
+            if copyToClipboard {
+                copyFileToClipboard(outputURL)
             }
 
             settings.stopAccessingOutputDirectory()
@@ -398,6 +402,12 @@ final class RecorderViewModel {
     }
 
     // MARK: - Helper Methods
+
+    private func copyFileToClipboard(_ url: URL) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.writeObjects([url as NSURL])
+    }
 
     private func getContentSize(from filter: SCContentFilter) async -> CGSize {
         // Apply scale if Capture Native Resolution setting is enabled
