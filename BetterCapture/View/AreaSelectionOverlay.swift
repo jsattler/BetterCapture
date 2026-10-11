@@ -547,9 +547,10 @@ final class AreaSelectionView: NSView {
     }
 
     private func updateButtonPositions() {
-        // The view is unflipped, so both centres are offsets from the bottom-left corner
+        // The view is unflipped, so selectionRect is measured from the bottom-left corner.
+        // Auto layout constants on vertical anchors grow downward, so the Y offset is negated.
         buttonContainerCenterX?.constant = selectionRect.midX
-        buttonContainerCenterY?.constant = selectionRect.midY
+        buttonContainerCenterY?.constant = -selectionRect.midY
     }
 
     private func makeActionButton(title: String, textColor: NSColor, action: Selector) -> NSButton {
