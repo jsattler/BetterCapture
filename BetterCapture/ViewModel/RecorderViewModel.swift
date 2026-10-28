@@ -9,6 +9,7 @@ import Foundation
 import ScreenCaptureKit
 import AppKit
 import OSLog
+import CoreMedia
 
 /// The main view model managing recording state and coordination between services
 @MainActor
@@ -20,6 +21,7 @@ final class RecorderViewModel {
     enum RecordingState {
         case idle
         case recording
+        case paused
         case stopping
     }
 
@@ -45,7 +47,11 @@ final class RecorderViewModel {
     }
 
     var isRecording: Bool {
-        state == .recording
+        state == .recording || state == .paused
+    }
+
+    var isPaused: Bool {
+        state == .paused
     }
 
     var canStartRecording: Bool {
@@ -89,6 +95,8 @@ final class RecorderViewModel {
 
     private var recordingTimer: Timer?
     private var recordingStartTime: Date?
+    private var pauseStartedAt: Date?
+    private var totalPausedDuration: TimeInterval = 0
     private var videoSize: CGSize = .zero
     private let areaSelectionOverlay = AreaSelectionOverlay()
     private let selectionBorderFrame = SelectionBorderFrame()
@@ -145,6 +153,38 @@ final class RecorderViewModel {
                 await presentAreaSelection()
             }
         }
+    }
+
+    /// Pauses or resumes the active recording without stopping the capture stream.
+    func togglePause() {
+        switch state {
+        case .recording:
+            pauseRecording()
+        case .paused:
+            resumeRecording()
+        case .idle, .stopping:
+            return
+        }
+    }
+
+    private func pauseRecording() {
+        guard state == .recording else { return }
+        pauseStartedAt = Date()
+        assetWriter.pause()
+        state = .paused
+        updateRecordingDuration()
+    }
+
+    private func resumeRecording() {
+        guard state == .paused else { return }
+        let now = Date()
+        if let pauseStartedAt {
+            totalPausedDuration += now.timeIntervalSince(pauseStartedAt)
+        }
+        self.pauseStartedAt = nil
+        assetWriter.resume()
+        state = .recording
+        updateRecordingDuration()
     }
 
     /// Presents the system content sharing picker
@@ -394,20 +434,32 @@ final class RecorderViewModel {
 
     private func startTimer() {
         recordingStartTime = Date()
+        pauseStartedAt = nil
+        totalPausedDuration = 0
         recordingDuration = 0
 
         recordingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
-                guard let self, let startTime = self.recordingStartTime else { return }
-                self.recordingDuration = Date().timeIntervalSince(startTime)
+                self?.updateRecordingDuration()
             }
         }
+    }
+
+    private func updateRecordingDuration() {
+        guard let recordingStartTime else { return }
+        let now = Date()
+        let currentPauseDuration = pauseStartedAt.map { now.timeIntervalSince($0) } ?? 0
+        recordingDuration = now.timeIntervalSince(recordingStartTime)
+            - totalPausedDuration
+            - currentPauseDuration
     }
 
     private func stopTimer() {
         recordingTimer?.invalidate()
         recordingTimer = nil
         recordingStartTime = nil
+        pauseStartedAt = nil
+        totalPausedDuration = 0
     }
 
     // MARK: - Helper Methods
