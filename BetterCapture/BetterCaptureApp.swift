@@ -42,7 +42,10 @@ struct MenuBarLabel: View {
     let viewModel: RecorderViewModel
 
     var body: some View {
-        if viewModel.isRecording {
+        if viewModel.isPaused {
+            Label("Paused", systemImage: "pause.fill")
+                .foregroundStyle(.orange)
+        } else if viewModel.isRecording {
             // Render the duration into a fixed-size image so the
             // NSStatusItem never recalculates its width on each tick.
             if let image = timerImage {

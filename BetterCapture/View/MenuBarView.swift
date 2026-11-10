@@ -35,7 +35,9 @@ struct MenuBarView: View {
             // Recording button (stop + timer) or Start button
             if isRecording {
                 RecordingButton(
-                    duration: viewModel.formattedDuration
+                    duration: viewModel.formattedDuration,
+                    isPaused: viewModel.isPaused,
+                    pauseAction: { viewModel.togglePause() }
                 ) {
                     Task {
                         await viewModel.stopRecording()
@@ -203,44 +205,73 @@ struct MenuBarActionButton: View {
 /// A combined button that shows recording status and allows stopping
 struct RecordingButton: View {
     let duration: String
+    let isPaused: Bool
+    let pauseAction: () -> Void
     let action: () -> Void
     @State private var isHovered = false
+    @State private var isPauseHovered = false
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                // Pulsing red dot with stop icon
-                ZStack {
-                    Circle()
-                        .fill(.gray.opacity(0.2))
-                        .frame(width: 24, height: 24)
-
-                    Image(systemName: "stop.circle")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.red.opacity(0.8))
-                }
-
-                Text("Stop Recording")
-                    .font(.system(size: 13, weight: .semibold))
-
-                Spacer()
-
-                Text(duration)
-                    .font(.system(size: 13, weight: .medium, design: .monospaced))
-                    .foregroundStyle(.secondary)
+        HStack(spacing: 0) {
+            Button(action: pauseAction) {
+                Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(isPaused ? Color.orange : Color.primary)
+                    .frame(width: 28, height: 28)
+                    .background(
+                        isPauseHovered
+                            ? Color.red.opacity(0.1)
+                            : (isPaused ? Color.orange.opacity(0.12) : Color.gray.opacity(0.12)),
+                        in: .circle
+                    )
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .contentShape(.rect)
-        }
-        .buttonStyle(.plain)
-        .background(
-            RoundedRectangle(cornerRadius: 4)
-                .fill(isHovered ? .red.opacity(0.1) : .clear)
-                .padding(.horizontal, 4)
-        )
-        .onHover { hovering in
-            isHovered = hovering
+            .buttonStyle(.plain)
+            .padding(.leading, 12)
+            .padding(.trailing, 6)
+            .onHover { hovering in
+                isPauseHovered = hovering
+            }
+            .help(isPaused ? "Resume recording" : "Pause recording")
+            .accessibilityLabel(isPaused ? "Resume recording" : "Pause recording")
+
+            Button(action: action) {
+                HStack(spacing: 8) {
+                    ZStack {
+                        Circle()
+                            .fill(.gray.opacity(0.2))
+                            .frame(width: 24, height: 24)
+
+                        Image(systemName: "stop.circle")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.red.opacity(0.8))
+                    }
+
+                    Text(isPaused ? "Paused" : "Stop Recording")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(isPaused ? Color.orange : Color.primary)
+                }
+                .padding(.leading, 2)
+                .padding(.trailing, 12)
+                .padding(.vertical, 6)
+                .contentShape(.rect)
+                .background(
+                    isHovered ? Color.red.opacity(0.1) : .clear,
+                    in: .rect(cornerRadius: 6)
+                )
+            }
+            .buttonStyle(.plain)
+            .help("Stop recording")
+            .onHover { hovering in
+                isHovered = hovering
+            }
+
+            Spacer(minLength: 8)
+
+            Text(duration)
+                .font(.system(size: 13, weight: .medium, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .padding(.leading, 12)
+                .padding(.trailing, 24)
         }
     }
 }

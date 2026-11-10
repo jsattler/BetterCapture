@@ -9,6 +9,7 @@ import KeyboardShortcuts
 
 extension KeyboardShortcuts.Name {
     static let toggleRecording = Self("toggleRecording")
+    static let togglePause = Self("togglePause")
     static let selectContent = Self("selectContent")
     static let selectArea = Self("selectArea")
 }

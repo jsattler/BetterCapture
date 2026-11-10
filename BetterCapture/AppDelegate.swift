@@ -43,6 +43,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        KeyboardShortcuts.onKeyUp(for: .togglePause) { [viewModel] in
+            Task { @MainActor in
+                viewModel.togglePause()
+            }
+        }
+
         KeyboardShortcuts.onKeyUp(for: .selectContent) { [viewModel] in
             Task { @MainActor in
                 viewModel.presentPicker()

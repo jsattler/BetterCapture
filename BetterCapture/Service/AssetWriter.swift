@@ -76,6 +76,11 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     private var hasPaddedAudio = false
     private var hasPaddedMicrophone = false
 
+    private var pauseStartedAt: CMTime?
+    private var resumedAt: CMTime = .invalid
+    private var totalPausedDuration: CMTime = .zero
+    private var isPaused = false
+
     /// Upper bound on how many frames a single gap may be filled with, as a
     /// multiple of `gridFrameRate`. A capture that stalls for longer than this is
     /// left with a hole rather than blocking the capture queue.
@@ -207,6 +212,24 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
         logger.info("AssetWriter started writing")
     }
 
+    func pause(at time: CMTime = CMClockGetTime(CMClockGetHostTimeClock())) {
+        lock.withLockUnchecked {
+            guard isWriting, !isPaused, time.isNumeric else { return }
+            pauseStartedAt = time
+            isPaused = true
+        }
+    }
+
+    func resume(at time: CMTime = CMClockGetTime(CMClockGetHostTimeClock())) {
+        lock.withLockUnchecked {
+            guard isWriting, isPaused, time.isNumeric, let pauseStartedAt else { return }
+            totalPausedDuration = CMTimeAdd(totalPausedDuration, CMTimeSubtract(time, pauseStartedAt))
+            resumedAt = time
+            self.pauseStartedAt = nil
+            isPaused = false
+        }
+    }
+
     // Track frame counts for debugging
     private var frameCount = 0
 
@@ -232,7 +255,10 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
         lock.withLockUnchecked {
             guard let assetWriter, assetWriter.status == .writing else { return }
 
-            let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+            guard let presentationTime = adjustedPresentationTime(
+                CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+            else { return }
+
             startSessionIfNeeded(at: presentationTime)
 
             // Snap to the constant frame rate grid. Frames that land on a slot at or
@@ -350,11 +376,15 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                 return
             }
 
-            startSessionIfNeeded(at: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+            guard let presentationTime = adjustedPresentationTime(
+                CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+            else { return }
+
+            startSessionIfNeeded(at: presentationTime)
 
             if !hasPaddedAudio {
                 hasPaddedAudio = true
-                padWithSilence(sampleBuffer, into: audioInput, label: "system audio")
+                padWithSilence(sampleBuffer, before: presentationTime, into: audioInput, label: "system audio")
             }
 
             append(sampleBuffer, rebasedInto: audioInput, label: "audio")
@@ -372,11 +402,15 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
                 return
             }
 
-            startSessionIfNeeded(at: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+            guard let presentationTime = adjustedPresentationTime(
+                CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+            else { return }
+
+            startSessionIfNeeded(at: presentationTime)
 
             if !hasPaddedMicrophone {
                 hasPaddedMicrophone = true
-                padWithSilence(sampleBuffer, into: microphoneInput, label: "microphone")
+                padWithSilence(sampleBuffer, before: presentationTime, into: microphoneInput, label: "microphone")
             }
 
             append(sampleBuffer, rebasedInto: microphoneInput, label: "microphone")
@@ -405,12 +439,24 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
         return max(0, Int((elapsed * Double(gridFrameRate)).rounded()))
     }
 
+    /// Drops samples captured during a pause and shifts later timestamps back over it.
+    private func adjustedPresentationTime(_ presentationTime: CMTime) -> CMTime? {
+        guard !isPaused, presentationTime.isNumeric else { return nil }
+        if resumedAt.isNumeric, CMTimeCompare(presentationTime, resumedAt) < 0 {
+            return nil
+        }
+        return CMTimeSubtract(presentationTime, totalPausedDuration)
+    }
+
     /// Writes silence covering the gap between the session anchor and this track's
     /// first sample, so the track begins at time zero.
     private func padWithSilence(
-        _ sampleBuffer: CMSampleBuffer, into input: AVAssetWriterInput, label: String
+        _ sampleBuffer: CMSampleBuffer,
+        before presentationTime: CMTime,
+        into input: AVAssetWriterInput,
+        label: String
     ) {
-        let offset = CMSampleBufferGetPresentationTimeStamp(sampleBuffer) - sessionAnchor
+        let offset = presentationTime - sessionAnchor
         guard offset.isNumeric, offset > .zero,
             let formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer),
             let silence = SilentAudioBuffer.make(
@@ -445,12 +491,13 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     private func rebase(_ sampleBuffer: CMSampleBuffer) -> CMSampleBuffer? {
         guard var timings = try? sampleBuffer.sampleTimingInfos() else { return nil }
 
+        let origin = CMTimeAdd(sessionAnchor, totalPausedDuration)
         for index in timings.indices {
             timings[index].presentationTimeStamp = CMTimeSubtract(
-                timings[index].presentationTimeStamp, sessionAnchor)
+                timings[index].presentationTimeStamp, origin)
             if timings[index].decodeTimeStamp.isNumeric {
                 timings[index].decodeTimeStamp = CMTimeSubtract(
-                    timings[index].decodeTimeStamp, sessionAnchor)
+                    timings[index].decodeTimeStamp, origin)
             }
         }
 
@@ -514,6 +561,10 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
         hasLoggedFirstFrame = false
         hasPaddedAudio = false
         hasPaddedMicrophone = false
+        pauseStartedAt = nil
+        resumedAt = .invalid
+        totalPausedDuration = .zero
+        isPaused = false
     }
 
     // MARK: - Finalization

@@ -66,6 +66,61 @@ struct AssetWriterTests {
         #expect(result.videoFrameCount == 5)
     }
 
+    @Test func pauseRemovesPausedTimeFromVideoTimeline() async throws {
+        let settings = makeStore()
+        settings.frameRate = .fps30
+
+        let assetWriter = AssetWriter()
+        try assetWriter.setup(url: makeOutputURL(), settings: settings, videoSize: videoSize)
+        try assetWriter.startWriting()
+
+        for index in 0..<3 {
+            assetWriter.appendVideoSample(
+                try makeVideoSampleBuffer(at: CMTime(value: CMTimeValue(index), timescale: 30)))
+        }
+
+        assetWriter.pause(at: CMTime(value: 1, timescale: 10))
+        assetWriter.appendVideoSample(try makeVideoSampleBuffer(at: CMTime(value: 1, timescale: 1)))
+        assetWriter.resume(at: CMTime(value: 51, timescale: 10))
+        assetWriter.appendVideoSample(
+            try makeVideoSampleBuffer(at: CMTime(value: 154, timescale: 30)))
+
+        let result = try await assetWriter.finishWriting()
+        defer { try? FileManager.default.removeItem(at: result.url) }
+
+        let times = try await videoPresentationTimes(of: result.url)
+        #expect(times == (0..<5).map { CMTime(value: CMTimeValue($0), timescale: 30) })
+    }
+
+    @Test func pauseRemovesPausedTimeFromAudioTimeline() async throws {
+        let settings = makeStore()
+        settings.captureSystemAudio = true
+        settings.audioCodec = .pcm
+
+        let assetWriter = AssetWriter()
+        try assetWriter.setup(url: makeOutputURL(), settings: settings, videoSize: videoSize)
+        try assetWriter.startWriting()
+
+        for index in 0..<5 {
+            let time = CMTime(value: CMTimeValue(index * 1024), timescale: 48000)
+            assetWriter.appendAudioSample(try makeSilentAudioSampleBuffer(at: time))
+        }
+
+        assetWriter.pause(at: CMTime(value: 1, timescale: 10))
+        assetWriter.appendAudioSample(
+            try makeSilentAudioSampleBuffer(at: CMTime(value: 1, timescale: 1)))
+        assetWriter.resume(at: CMTime(value: 51, timescale: 10))
+        assetWriter.appendAudioSample(
+            try makeSilentAudioSampleBuffer(at: CMTime(value: 245824, timescale: 48000)))
+
+        let result = try await assetWriter.finishWriting()
+        defer { try? FileManager.default.removeItem(at: result.url) }
+
+        let track = try #require(await AVURLAsset(url: result.url).loadTracks(withMediaType: .audio).first)
+        let duration = try await track.load(.timeRange).duration.seconds
+        #expect(duration < 0.2)
+    }
+
     @Test func cancelAfterFinishingDoesNotDeleteTheSavedRecording() async throws {
         let settings = makeStore()
 

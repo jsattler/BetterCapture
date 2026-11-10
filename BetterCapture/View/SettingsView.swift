@@ -43,6 +43,7 @@ struct ShortcutsSettingsView: View {
         Form {
             Section("Recording") {
                 KeyboardShortcuts.Recorder("Toggle Recording", name: .toggleRecording)
+                KeyboardShortcuts.Recorder("Pause / Resume Recording", name: .togglePause)
             }
 
             Section("Content Selection") {
