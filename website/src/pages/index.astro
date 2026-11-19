@@ -3,6 +3,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.svelte';
 import FeaturesSection from '../components/FeaturesSection.svelte';
 import CTASection from '../components/CTASection.svelte';
+import FAQSection from '../components/FAQSection.svelte';
+import { faqs } from '../data/faqs';
+
+// Resolved at build time so the structured data never goes stale.
+// Falls back to omitting the fields if GitHub is unreachable.
+let release: { softwareVersion?: string; datePublished?: string } = {};
+try {
+	const res = await fetch('https://api.github.com/repos/jsattler/BetterCapture/releases/latest');
+	if (res.ok) {
+		const { tag_name, published_at } = await res.json();
+		release = { softwareVersion: tag_name.replace(/^v/, ''), datePublished: published_at };
+	}
+} catch {}
 
 const structuredData = [
 	{
@@ -14,7 +27,8 @@ const structuredData = [
 		"operatingSystem": "macOS 15.2+",
 		"url": "https://bettercapture.app",
 		"downloadUrl": "https://github.com/jsattler/BetterCapture/releases/latest",
-		"softwareVersion": "1.0",
+		...release,
+		"softwareRequirements": "macOS 15.2 or later",
 		"offers": {
 			"@type": "Offer",
 			"price": "0",
@@ -35,7 +49,7 @@ const structuredData = [
 		"license": "https://opensource.org/licenses/MIT",
 		"screenshot": "https://bettercapture.app/screenshot-basic.png",
 		"featureList": [
-			"ProRes 4444, HEVC, and H.264 codec support",
+			"ProRes 422, ProRes 4444, HEVC, and H.264 codec support",
 			"Alpha channel support for transparency",
 			"Record system audio and microphone simultaneously",
 			"Content filtering to exclude specific windows",
@@ -61,56 +75,14 @@ const structuredData = [
 	{
 		"@context": "https://schema.org",
 		"@type": "FAQPage",
-		"mainEntity": [
-			{
-				"@type": "Question",
-				"name": "Is BetterCapture really free?",
-				"acceptedAnswer": {
-					"@type": "Answer",
-					"text": "Yes, BetterCapture is 100% free and open source under the MIT license. There are no subscriptions, trials, premium tiers, or hidden costs."
-				}
-			},
-			{
-				"@type": "Question",
-				"name": "Can BetterCapture record system audio on Mac?",
-				"acceptedAnswer": {
-					"@type": "Answer",
-					"text": "Yes, BetterCapture can record system audio and microphone simultaneously using macOS ScreenCaptureKit, without requiring any additional audio drivers or plugins."
-				}
-			},
-			{
-				"@type": "Question",
-				"name": "What video formats does BetterCapture support?",
-				"acceptedAnswer": {
-					"@type": "Answer",
-					"text": "BetterCapture supports ProRes 4444, HEVC (H.265), and H.264 codecs. ProRes 4444 also includes alpha channel support for transparent recordings."
-				}
-			},
-			{
-				"@type": "Question",
-				"name": "Does BetterCapture add a watermark to recordings?",
-				"acceptedAnswer": {
-					"@type": "Answer",
-					"text": "No, BetterCapture never adds watermarks to your recordings. All recordings are clean and professional, completely free of any branding or limitations."
-				}
-			},
-			{
-				"@type": "Question",
-				"name": "What macOS version do I need to run BetterCapture?",
-				"acceptedAnswer": {
-					"@type": "Answer",
-					"text": "BetterCapture requires macOS 15.2 Sequoia or later. It is built with SwiftUI and ScreenCaptureKit, which require modern macOS versions for optimal performance."
-				}
-			},
-			{
-				"@type": "Question",
-				"name": "Does BetterCapture collect any data or track usage?",
-				"acceptedAnswer": {
-					"@type": "Answer",
-					"text": "No. BetterCapture has zero tracking, zero analytics, and zero cloud uploads. All recordings are stored locally on your Mac. No account is required, and the source code is open for anyone to verify."
-				}
+		"mainEntity": faqs.map((faq) => ({
+			"@type": "Question",
+			"name": faq.question,
+			"acceptedAnswer": {
+				"@type": "Answer",
+				"text": faq.answer
 			}
-		]
+		}))
 	}
 ];
 ---
@@ -134,6 +106,7 @@ const structuredData = [
 	<main>
 		<Hero client:load />
 		<FeaturesSection client:visible />
+		<FAQSection {faqs} />
 		<CTASection client:visible />
 	</main>
 </BaseLayout>

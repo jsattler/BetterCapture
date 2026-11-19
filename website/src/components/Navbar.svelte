@@ -13,6 +13,7 @@
       <div class="hidden md:flex items-center justify-center gap-6">
         <a href="/#hero" class="text-white/60 hover:text-white transition-colors text-md font-semibold">Home</a>
         <a href="/#features" class="text-white/60 hover:text-white transition-colors text-md font-semibold">Features</a>
+        <a href="/compare" class="text-white/60 hover:text-white transition-colors text-md font-semibold">Compare</a>
         <a 
           href="https://github.com/jsattler/BetterCapture/milestones" 
           target="_blank"

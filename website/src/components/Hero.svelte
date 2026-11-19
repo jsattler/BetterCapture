@@ -23,14 +23,14 @@
   }
 </script>
 
-<section class="relative pt-20 sm:pt-24 md:pt-28 lg:pt-40 xl:pt-44 pb-8 px-4 md:px-6 lg:px-12 xl:px-16">
+<section id="hero" class="relative pt-20 sm:pt-24 md:pt-28 lg:pt-40 xl:pt-44 pb-8 px-4 md:px-6 lg:px-12 xl:px-16">
   <div class="mx-auto w-full max-w-[1400px]">
     <div class="flex flex-col lg:grid lg:grid-cols-7 xl:grid-cols-5 2xl:grid-cols-3 gap-6 md:gap-8 lg:gap-12 w-full items-start">
       <!-- Left column - Content -->
       <div class="w-full lg:col-span-5 xl:col-span-3 2xl:col-span-2 text-center lg:text-left max-w-2xl mx-auto lg:max-w-none">
         <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-6xl 2xl:text-6xl text-white mb-4 md:mb-6">The macOS screen recorder <br class="hidden xl:inline" />for the rest of us</h1>
         <p class="text-sm sm:text-base md:text-lg text-white/70 mb-4 md:mb-6 lg:mb-8 max-w-xl mx-auto lg:mx-0">
-          Forever free and open-source. A lightweight, and intuitive screen recorder with a native look and feel.
+          BetterCapture is a free, open-source screen recorder for macOS. Record your screen with system audio and microphone in ProRes, HEVC, or H.264 — no watermarks, no tracking, and a native look and feel.
         </p>
         
         <!-- Installation section -->

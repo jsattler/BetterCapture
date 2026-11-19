@@ -1,0 +1,34 @@
+# BetterCapture
+
+> BetterCapture is a free, open-source (MIT) screen recorder for macOS 15.2 Sequoia or later. It records the screen together with system audio and microphone in ProRes 422, ProRes 4444 (with alpha channel), HEVC (H.265), or H.264, with no watermarks, no tracking, and no account required.
+
+Key facts:
+
+- Price: free, no subscriptions, trials, or premium tiers
+- License: MIT, source code on GitHub
+- Platform: macOS 15.2 Sequoia or later, built with SwiftUI and ScreenCaptureKit
+- Lives in the macOS menu bar and uses the native macOS content picker
+- Records system audio and microphone simultaneously, without extra audio drivers
+- Codecs: ProRes 422, ProRes 4444 (alpha channel), HEVC (H.265), H.264, with HDR support
+- Content filtering to exclude specific windows from recordings
+- Privacy: no analytics, no telemetry, no cloud uploads; recordings stay on the Mac
+- Install: `brew install bettercapture`, or download BetterCapture.dmg from GitHub Releases
+- Automation: URL scheme for Raycast, Shortcuts, and Alfred (`bettercapture://toggle`, `bettercapture://toggle-copy`, `bettercapture://open-recordings`)
+
+## Links
+
+- [Website](https://bettercapture.app): Overview, features, and FAQ
+- [Comparisons](https://bettercapture.app/compare): Honest comparisons, including what competitors do better
+  - [vs QuickTime](https://bettercapture.app/compare/quicktime)
+  - [vs OBS Studio](https://bettercapture.app/compare/obs)
+  - [vs CleanShot X](https://bettercapture.app/compare/cleanshot-x)
+  - [vs Screen Studio](https://bettercapture.app/compare/screen-studio)
+- [Download](https://github.com/jsattler/BetterCapture/releases/latest): Latest release (BetterCapture.dmg)
+- [Source code](https://github.com/jsattler/BetterCapture): GitHub repository and README
+- [Changelog](https://github.com/jsattler/BetterCapture/releases): Release notes
+- [Privacy Policy](https://bettercapture.app/privacy-policy): No data collection
+
+## Optional
+
+- [Roadmap](https://github.com/jsattler/BetterCapture/milestones): Planned features
+- [License](https://github.com/jsattler/BetterCapture/blob/main/LICENSE): MIT License

@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { comparisons, lastChecked, type Comparison } from '../../data/comparisons';
+
+export function getStaticPaths() {
+	return comparisons.map((comparison) => ({ params: { slug: comparison.slug }, props: { comparison } }));
+}
+
+const { comparison: c } = Astro.props as { comparison: Comparison };
+const url = `https://bettercapture.app/compare/${c.slug}`;
+---
+
+<BaseLayout
+	title={`BetterCapture vs ${c.competitor}: An Honest Comparison`}
+	description={c.summary}
+	canonicalUrl={url}
+>
+	<main class="pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 px-4 sm:px-6">
+		<article class="max-w-3xl mx-auto text-white/70">
+			<a href="/compare" class="text-sm text-white/40 hover:text-white">&larr; All comparisons</a>
+			<h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mt-4 mb-2">BetterCapture vs {c.competitor}</h1>
+			<p class="text-white/40 text-sm mb-8">Last checked: {lastChecked}</p>
+
+			<p class="text-base sm:text-lg mb-10">{c.intro}</p>
+
+			<div class="space-y-8">
+				{c.sections.map((section) => (
+					<section>
+						<h2 class="text-xl sm:text-2xl font-semibold text-white mb-3">{section.heading}</h2>
+						<div class="space-y-3">
+							{section.paragraphs.map((p) => <p>{p}</p>)}
+						</div>
+					</section>
+				))}
+
+				<section class="grid sm:grid-cols-2 gap-4">
+					<div class="bg-white/5 rounded-2xl border border-white/10 p-5">
+						<h2 class="text-lg font-semibold text-white mb-3">Where {c.competitor} is better</h2>
+						<ul class="list-disc list-inside space-y-1.5 text-sm">
+							{c.competitorWins.map((item) => <li>{item}</li>)}
+						</ul>
+					</div>
+					<div class="bg-white/5 rounded-2xl border border-white/10 p-5">
+						<h2 class="text-lg font-semibold text-white mb-3">Where BetterCapture is better</h2>
+						<ul class="list-disc list-inside space-y-1.5 text-sm">
+							{c.betterCaptureWins.map((item) => <li>{item}</li>)}
+						</ul>
+					</div>
+				</section>
+
+				<section>
+					<h2 class="text-xl sm:text-2xl font-semibold text-white mb-3">Which should you choose?</h2>
+					<p class="mb-3"><strong class="text-white">Choose {c.competitor}</strong> if {c.chooseCompetitor}</p>
+					<p><strong class="text-white">Choose BetterCapture</strong> if {c.chooseBetterCapture}</p>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-white mb-2">Sources</h2>
+					<ul class="list-disc list-inside space-y-1 text-sm">
+						{c.sources.map((s) => (
+							<li><a href={s.url} target="_blank" rel="noopener noreferrer" class="underline hover:text-white">{s.label}</a></li>
+						))}
+					</ul>
+				</section>
+			</div>
+		</article>
+	</main>
+</BaseLayout>

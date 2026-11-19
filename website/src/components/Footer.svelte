@@ -45,6 +45,11 @@
           <h4 class="text-white font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Resources</h4>
           <ul class="space-y-1.5 sm:space-y-2">
             <li>
+              <a href="/compare" class="text-white/50 hover:text-white transition-colors text-xs sm:text-sm">
+                Compare
+              </a>
+            </li>
+            <li>
               <a 
                 href="https://github.com/jsattler/BetterCapture/releases" 
                 target="_blank"
