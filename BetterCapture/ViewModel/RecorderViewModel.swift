@@ -32,6 +32,12 @@ final class RecorderViewModel {
     private(set) var lastError: Error?
     private(set) var selectedContentFilter: SCContentFilter?
 
+    /// Where the active recording is written to, set as soon as it starts
+    private(set) var currentOutputURL: URL?
+
+    /// The file of the most recent recording that was saved successfully
+    private(set) var lastRecordingURL: URL?
+
     /// The source rectangle for area selection (in display points, top-left origin)
     private(set) var selectedSourceRect: CGRect?
 
@@ -261,6 +267,34 @@ final class RecorderViewModel {
         }
     }
 
+    /// Selects content chosen without the picker or area overlay, such as from the command line
+    /// - Parameters:
+    ///   - filter: The content to capture
+    ///   - sourceRect: The area to capture within a display filter (display points, top-left origin)
+    ///   - screen: The screen the area is on, used to show its border while recording
+    func selectContent(_ filter: SCContentFilter, sourceRect: CGRect?, screen: NSScreen?) async throws {
+        captureEngine.clearSelection()
+        recordingOverlay.dismiss()
+        selectionBorderFrame.dismiss()
+
+        selectedSourceRect = sourceRect
+        selectedScreen = screen
+        selectedScreenRect = nil
+        if let sourceRect, let screen {
+            // Flip from the display's top-left origin to the bottom-left origin of screen coordinates
+            selectedScreenRect = CGRect(
+                x: screen.frame.minX + sourceRect.minX,
+                y: screen.frame.maxY - sourceRect.maxY,
+                width: sourceRect.width,
+                height: sourceRect.height
+            )
+        }
+
+        selectedContentFilter = filter
+        try await captureEngine.updateFilter(filter)
+        await previewService.setContentFilter(filter, sourceRect: sourceRect)
+    }
+
     /// Starts a new recording session
     func startRecording() async {
         guard canStartRecording else {
@@ -293,6 +327,7 @@ final class RecorderViewModel {
 
             // Setup asset writer
             let outputURL = settings.generateOutputURL()
+            currentOutputURL = outputURL
             try assetWriter.setup(url: outputURL, settings: settings, videoSize: videoSize)
             try assetWriter.startWriting()
             logger.info("AssetWriter ready")
@@ -325,6 +360,7 @@ final class RecorderViewModel {
         } catch {
             state = .idle
             lastError = error
+            currentOutputURL = nil
             cameraSession.stop()
             selectionBorderFrame.dismiss()
 
@@ -366,6 +402,8 @@ final class RecorderViewModel {
 
             state = .idle
             recordingDuration = 0
+            currentOutputURL = nil
+            lastRecordingURL = outputURL
 
             logger.info("Recording stopped and saved to: \(outputURL.lastPathComponent)")
 
@@ -390,6 +428,7 @@ final class RecorderViewModel {
         } catch {
             state = .idle
             lastError = error
+            currentOutputURL = nil
             assetWriter.cancel()
             settings.stopAccessingOutputDirectory()
             notificationService.sendRecordingFailedNotification(error: error)

@@ -578,6 +578,22 @@ final class SettingsStore {
         }
     }
 
+    // MARK: - Command Line
+
+    /// Whether the `bettercapture` command-line tool may control recordings. Off by default,
+    /// because it lets any local process record the screen with BetterCapture's permission.
+    var allowCommandLineControl: Bool {
+        get {
+            access(keyPath: \.allowCommandLineControl)
+            return defaults.bool(forKey: "allowCommandLineControl")
+        }
+        set {
+            withMutation(keyPath: \.allowCommandLineControl) {
+                defaults.set(newValue, forKey: "allowCommandLineControl")
+            }
+        }
+    }
+
     // MARK: - Output Settings
 
     /// The default output directory (Movies/BetterCapture)

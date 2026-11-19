@@ -24,6 +24,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var compactBadge: CompactBadgeCoordinator?
 
+    private var controlServer: ControlServer?
+
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "BetterCapture", category: "AppDelegate")
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -32,6 +34,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let compactBadge = CompactBadgeCoordinator(viewModel: viewModel)
         compactBadge.start()
         self.compactBadge = compactBadge
+
+        startControlServer()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        controlServer?.stop()
     }
 
     /// In the compact layout the `MenuBarExtra` is removed, so hiding the floating
@@ -74,6 +82,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         logger.info("Registered global keyboard shortcuts")
+    }
+
+    // MARK: - Command Line
+
+    /// Always listens, so the command-line tool can tell the app is running even while
+    /// command-line control is turned off and explain how to turn it on
+    private func startControlServer() {
+        guard let bundleID = Bundle.main.bundleIdentifier else { return }
+
+        let server = ControlServer(
+            socketPath: ControlProtocol.socketPath(bundleIdentifier: bundleID),
+            handler: ControlCommandHandler(viewModel: viewModel)
+        )
+        server.start()
+        controlServer = server
     }
 
     // MARK: - URL Scheme
