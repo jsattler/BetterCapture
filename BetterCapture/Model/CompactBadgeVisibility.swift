@@ -8,8 +8,8 @@ import Foundation
 /// Decides when the floating compact badge is on screen.
 ///
 /// The badge starts hidden and behaves like a menu: clicking the menu bar icon
-/// toggles it, and it hides again after an action, on Escape, or when a
-/// recording starts or stops.
+/// toggles it, and it hides again after an action, on Escape, on a click
+/// elsewhere, or when a recording starts or stops.
 struct CompactBadgeVisibility {
     private(set) var isShown = false
 
@@ -22,7 +22,7 @@ struct CompactBadgeVisibility {
         isShown.toggle()
     }
 
-    /// Handles an action in the badge, or Escape
+    /// Handles an action in the badge, Escape, or a click elsewhere
     mutating func hide() {
         isShown = false
     }

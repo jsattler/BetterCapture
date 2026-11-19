@@ -29,6 +29,8 @@ private final class CompactBadgeNSPanel: NSPanel {
         isMovableByWindowBackground = true
         isReleasedWhenClosed = false
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        // Keep the badge out of screen recordings
+        sharingType = .none
     }
 
     override var canBecomeKey: Bool { true }
@@ -45,9 +47,10 @@ private final class CompactBadgeNSPanel: NSPanel {
 /// The badge starts hidden and behaves like a menu, see ``CompactBadgeVisibility``.
 /// While idle it appears at its saved position, while recording below the icon.
 @MainActor
-final class CompactBadgeCoordinator: NSObject {
+final class CompactBadgeCoordinator: NSObject, NSWindowDelegate {
 
-    private static let frameAutosaveName = "CompactBadge"
+    /// The `UserDefaults` key for the badge's idle position
+    private static let originKey = "compactBadgeOrigin"
 
     private let viewModel: RecorderViewModel
     private var panel: CompactBadgeNSPanel?
@@ -56,6 +59,9 @@ final class CompactBadgeCoordinator: NSObject {
     private var wasRecording = false
     /// The badge's position before it was moved below the status item while recording
     private var idleOrigin: CGPoint?
+    /// The panel's last known frame, to keep the badge centered when its width changes
+    private var lastFrame: CGRect?
+    private var didRequestPermissions = false
 
     init(viewModel: RecorderViewModel) {
         self.viewModel = viewModel
@@ -84,7 +90,18 @@ final class CompactBadgeCoordinator: NSObject {
         }
 
         updateStatusItem(for: layoutMode)
+        requestPermissionsIfNeeded(for: layoutMode)
         updatePanel()
+    }
+
+    /// The menu bar window isn't used in the compact layout, so request permissions here, once
+    private func requestPermissionsIfNeeded(for layoutMode: LayoutMode) {
+        guard layoutMode == .compact, !didRequestPermissions else { return }
+        didRequestPermissions = true
+
+        Task {
+            await viewModel.requestPermissionsOnLaunch()
+        }
     }
 
     private func observeStatusItemLabel() {
@@ -162,8 +179,8 @@ final class CompactBadgeCoordinator: NSObject {
             moveBelowStatusItem(panel)
         } else {
             if let idleOrigin {
-                panel.setFrameOrigin(idleOrigin)
                 self.idleOrigin = nil
+                panel.setFrameOrigin(idleOrigin)
             }
             moveOnScreenIfNeeded(panel)
         }
@@ -188,12 +205,41 @@ final class CompactBadgeCoordinator: NSObject {
         // Size the panel now, so the default position below centers the actual badge
         panel.setContentSize(hostingController.view.fittingSize)
 
-        if !panel.setFrameUsingName(Self.frameAutosaveName) {
-            panel.setFrameOrigin(defaultOrigin(for: panel.frame.size))
-        }
-        panel.setFrameAutosaveName(Self.frameAutosaveName)
+        let savedOrigin = UserDefaults.standard.string(forKey: Self.originKey).map(NSPointFromString)
+        panel.setFrameOrigin(savedOrigin ?? defaultOrigin(for: panel.frame.size))
+        lastFrame = panel.frame
+        panel.delegate = self
 
         return panel
+    }
+
+    // MARK: - NSWindowDelegate
+
+    func windowDidMove(_ notification: Notification) {
+        guard let panel else { return }
+        lastFrame = panel.frame
+
+        // Only remember idle positions, not the temporary one below the status item
+        guard idleOrigin == nil else { return }
+        UserDefaults.standard.set(NSStringFromPoint(panel.frame.origin), forKey: Self.originKey)
+    }
+
+    /// Keeps the badge centered on its previous position when its content changes width
+    func windowDidResize(_ notification: Notification) {
+        guard let panel, let lastFrame else { return }
+        let size = panel.frame.size
+        panel.setFrameOrigin(CGPoint(x: lastFrame.midX - size.width / 2, y: lastFrame.maxY - size.height))
+        self.lastFrame = panel.frame
+    }
+
+    /// Hides the badge when the user clicks elsewhere, like a menu
+    func windowDidResignKey(_ notification: Notification) {
+        // A click on the status item is handled by its own toggle
+        let isClickingStatusItem = NSEvent.pressedMouseButtons != 0
+            && statusItem?.button?.window?.frame.contains(NSEvent.mouseLocation) == true
+        // Hiding orders the panel out, which resigns key again
+        guard !isClickingStatusItem, visibility.isVisible(layoutMode: viewModel.settings.layoutMode) else { return }
+        hide()
     }
 
     /// Brings the badge back if its saved position is no longer on any screen,

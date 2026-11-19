@@ -25,7 +25,7 @@ struct CompactBadgeView: View {
         // highlights sit concentric to the badge
         HStack(spacing: 8) {
             if viewModel.isRecording {
-                CompactBadgeRecordingControls(viewModel: viewModel)
+                CompactBadgeRecordingControls(viewModel: viewModel, hide: hide)
             } else {
                 CompactBadgeIdleControls(viewModel: viewModel, hide: hide)
             }
@@ -37,11 +37,6 @@ struct CompactBadgeView: View {
         .gesture(WindowDragGesture())
         .allowsWindowActivationEvents(true)
         .padding(8)
-        .task {
-            // The menu bar window isn't used in the compact layout,
-            // so the badge requests permissions instead
-            await viewModel.requestPermissionsOnLaunch()
-        }
     }
 }
 
@@ -120,6 +115,7 @@ private struct CompactBadgeIdleControls: View {
 /// Stop (captioned with the elapsed time) and pause/resume
 private struct CompactBadgeRecordingControls: View {
     let viewModel: RecorderViewModel
+    let hide: () -> Void
 
     var body: some View {
         Button {
@@ -133,6 +129,7 @@ private struct CompactBadgeRecordingControls: View {
         .help("Stop Recording")
 
         Button {
+            hide()
             viewModel.togglePause()
         } label: {
             CompactBadgeTile(

@@ -12,7 +12,6 @@ import SwiftUI
 struct BetterCaptureApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var updaterService = UpdaterService()
-    @AppStorage(LayoutMode.storageKey) private var layoutMode: LayoutMode = .comfortable
 
     /// The recorder lives on the app delegate so URLs can be handled before the
     /// menu bar popover has ever been opened. See ``AppDelegate``.
@@ -22,7 +21,7 @@ struct BetterCaptureApp: App {
         // Menu bar extra - the primary interface in the comfortable layout.
         // Using .window style to support custom toggle switches.
         // The compact layout uses its own status item, see ``CompactBadgeCoordinator``
-        MenuBarExtra(isInserted: .init(get: { layoutMode == .comfortable }, set: { _ in })) {
+        MenuBarExtra(isInserted: .constant(viewModel.settings.layoutMode == .comfortable)) {
             MenuBarView(viewModel: viewModel)
                 .task {
                     await viewModel.requestPermissionsOnLaunch()
