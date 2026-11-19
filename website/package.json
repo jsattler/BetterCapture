@@ -9,17 +9,17 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/node": "^11.1.4",
-    "@astrojs/sitemap": "^3.7.3",
-    "@astrojs/svelte": "^9.0.1",
-    "@tailwindcss/vite": "^4.3.3",
+    "@astrojs/node": "^11.1.13",
+    "@astrojs/sitemap": "^3.7.5",
+    "@astrojs/svelte": "^9.1.6",
+    "@tailwindcss/vite": "^4.3.5",
     "airtable": "^0.12.2",
-    "astro": "^7.2.9",
-    "svelte": "^5.57.0",
+    "astro": "^7.4.12",
+    "svelte": "^5.57.3",
     "typescript": "^7.0.2",
-    "zod": "^4.5.4"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.5"
   }
 }
