@@ -79,7 +79,7 @@ final class CompactBadgeCoordinator: NSObject, NSWindowDelegate {
         let (layoutMode, isRecording) = withObservationTracking {
             (viewModel.settings.layoutMode, viewModel.isRecording)
         } onChange: { [weak self] in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 self?.observeState()
             }
         }
@@ -108,7 +108,7 @@ final class CompactBadgeCoordinator: NSObject, NSWindowDelegate {
         withObservationTracking {
             updateStatusItemLabel()
         } onChange: { [weak self] in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 self?.observeStatusItemLabel()
             }
         }
