@@ -19,7 +19,7 @@ import Testing
 @Suite(.serialized)
 struct AssetWriterTests {
 
-    private let videoSize = CGSize(width: 640, height: 480)
+    let videoSize = CGSize(width: 640, height: 480)
 
     // MARK: - Tests
 
@@ -64,61 +64,6 @@ struct AssetWriterTests {
         defer { try? FileManager.default.removeItem(at: result.url) }
 
         #expect(result.videoFrameCount == 5)
-    }
-
-    @Test func pauseRemovesPausedTimeFromVideoTimeline() async throws {
-        let settings = makeStore()
-        settings.frameRate = .fps30
-
-        let assetWriter = AssetWriter()
-        try assetWriter.setup(url: makeOutputURL(), settings: settings, videoSize: videoSize)
-        try assetWriter.startWriting()
-
-        for index in 0..<3 {
-            assetWriter.appendVideoSample(
-                try makeVideoSampleBuffer(at: CMTime(value: CMTimeValue(index), timescale: 30)))
-        }
-
-        assetWriter.pause(at: CMTime(value: 1, timescale: 10))
-        assetWriter.appendVideoSample(try makeVideoSampleBuffer(at: CMTime(value: 1, timescale: 1)))
-        assetWriter.resume(at: CMTime(value: 51, timescale: 10))
-        assetWriter.appendVideoSample(
-            try makeVideoSampleBuffer(at: CMTime(value: 154, timescale: 30)))
-
-        let result = try await assetWriter.finishWriting()
-        defer { try? FileManager.default.removeItem(at: result.url) }
-
-        let times = try await videoPresentationTimes(of: result.url)
-        #expect(times == (0..<5).map { CMTime(value: CMTimeValue($0), timescale: 30) })
-    }
-
-    @Test func pauseRemovesPausedTimeFromAudioTimeline() async throws {
-        let settings = makeStore()
-        settings.captureSystemAudio = true
-        settings.audioCodec = .pcm
-
-        let assetWriter = AssetWriter()
-        try assetWriter.setup(url: makeOutputURL(), settings: settings, videoSize: videoSize)
-        try assetWriter.startWriting()
-
-        for index in 0..<5 {
-            let time = CMTime(value: CMTimeValue(index * 1024), timescale: 48000)
-            assetWriter.appendAudioSample(try makeSilentAudioSampleBuffer(at: time))
-        }
-
-        assetWriter.pause(at: CMTime(value: 1, timescale: 10))
-        assetWriter.appendAudioSample(
-            try makeSilentAudioSampleBuffer(at: CMTime(value: 1, timescale: 1)))
-        assetWriter.resume(at: CMTime(value: 51, timescale: 10))
-        assetWriter.appendAudioSample(
-            try makeSilentAudioSampleBuffer(at: CMTime(value: 245824, timescale: 48000)))
-
-        let result = try await assetWriter.finishWriting()
-        defer { try? FileManager.default.removeItem(at: result.url) }
-
-        let track = try #require(await AVURLAsset(url: result.url).loadTracks(withMediaType: .audio).first)
-        let duration = try await track.load(.timeRange).duration.seconds
-        #expect(duration < 0.2)
     }
 
     @Test func cancelAfterFinishingDoesNotDeleteTheSavedRecording() async throws {
@@ -348,7 +293,7 @@ struct AssetWriterTests {
     ///
     /// Decoding rather than reading compressed samples keeps the output one buffer per
     /// frame in presentation order, free of the container's edit and marker buffers.
-    private func videoPresentationTimes(of url: URL) async throws -> [CMTime] {
+    func videoPresentationTimes(of url: URL) async throws -> [CMTime] {
         let asset = AVURLAsset(url: url)
         let track = try #require(await asset.loadTracks(withMediaType: .video).first)
 
@@ -372,18 +317,18 @@ struct AssetWriterTests {
     }
 
     /// Creates a SettingsStore backed by a fresh, empty UserDefaults suite.
-    private func makeStore() -> SettingsStore {
+    func makeStore() -> SettingsStore {
         let suiteName = "com.sattlerjoshua.BetterCaptureTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         return SettingsStore(defaults: defaults)
     }
 
-    private func makeOutputURL() -> URL {
+    func makeOutputURL() -> URL {
         FileManager.default.temporaryDirectory.appending(path: "\(UUID().uuidString).mov")
     }
 
     /// Creates a buffer of silent 48 kHz stereo audio.
-    private func makeSilentAudioSampleBuffer(at presentationTime: CMTime) throws -> CMSampleBuffer {
+    func makeSilentAudioSampleBuffer(at presentationTime: CMTime) throws -> CMSampleBuffer {
         let frameCount: AVAudioFrameCount = 1024
 
         let format = try #require(
@@ -429,7 +374,7 @@ struct AssetWriterTests {
     }
 
     /// Creates an empty BGRA video frame marked complete, as ScreenCaptureKit would deliver it.
-    private func makeVideoSampleBuffer(at presentationTime: CMTime) throws -> CMSampleBuffer {
+    func makeVideoSampleBuffer(at presentationTime: CMTime) throws -> CMSampleBuffer {
         var pixelBuffer: CVPixelBuffer?
         let pixelBufferStatus = CVPixelBufferCreate(
             kCFAllocatorDefault,
