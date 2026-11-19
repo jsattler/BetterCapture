@@ -30,10 +30,13 @@ struct BetterCaptureApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        // Settings window
-        Settings {
+        // Settings window. A regular `Window` rather than a `Settings` scene, so
+        // the split view gets a full-height sidebar and a standard toolbar
+        Window("Settings", id: SettingsView.windowID) {
             SettingsView(settings: viewModel.settings, updaterService: updaterService)
         }
+        .windowResizability(.contentSize)
+        .defaultLaunchBehavior(.suppressed)
     }
 }
 
