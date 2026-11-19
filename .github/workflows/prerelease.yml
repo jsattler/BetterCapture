@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.4.0
+        uses: actions/checkout@v7.0.1
 
       - name: Select Xcode version
         run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
@@ -155,7 +155,7 @@ jobs:
           echo "DMG_PATH=$DMG_PATH" >> $GITHUB_ENV
 
       - name: Upload DMG artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ env.APP_NAME }}-${{ steps.version.outputs.version }}-arm64.dmg
           path: ${{ env.DMG_PATH }}
