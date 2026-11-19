@@ -1,5 +1,5 @@
 # Build stage
-FROM node:22-alpine AS builder
+FROM node:26-alpine AS builder
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@10 --activate
@@ -20,7 +20,7 @@ COPY . .
 RUN pnpm run build
 
 # Production stage
-FROM node:22-alpine AS runner
+FROM node:26-alpine AS runner
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@10 --activate
