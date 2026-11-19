@@ -28,6 +28,14 @@ enum ContentSelectionMode: String {
         }
     }
 
+    /// A one-word label for space-constrained places like the compact badge
+    var shortLabel: String {
+        switch self {
+        case .pickContent: "Content"
+        case .selectArea: "Area"
+        }
+    }
+
     var icon: String {
         switch self {
         case .pickContent: "macwindow"
