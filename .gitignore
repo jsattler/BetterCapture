@@ -4,6 +4,8 @@ CLAUDE.md
 ## User settings
 xcuserdata/
 
+build/
+
 ## Xcode 8 and earlier
 *.mode1v3
 *.mode2v3
