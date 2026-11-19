@@ -20,16 +20,16 @@ struct TargetResolverTests {
     ]
 
     @Test func matchesID() throws {
-        #expect(try TargetResolver.resolve("103", in: windows, kind: "Window") == 3)
+        #expect(try TargetResolver.resolve("103", in: windows, kind: "window") == 3)
     }
 
     @Test func exactNameWinsOverPartialMatches() throws {
-        #expect(try TargetResolver.resolve("inbox", in: windows, kind: "Window") == 1)
-        #expect(try TargetResolver.resolve("NOTES", in: windows, kind: "Window") == 3)
+        #expect(try TargetResolver.resolve("inbox", in: windows, kind: "window") == 1)
+        #expect(try TargetResolver.resolve("NOTES", in: windows, kind: "window") == 3)
     }
 
     @Test func matchesUniquePartialName() throws {
-        #expect(try TargetResolver.resolve("archive", in: windows, kind: "Window") == 2)
+        #expect(try TargetResolver.resolve("archive", in: windows, kind: "window") == 2)
     }
 
     @Test func ambiguousPartialNameListsCandidates() {
@@ -39,7 +39,7 @@ struct TargetResolverTests {
         ]
 
         #expect {
-            try TargetResolver.resolve("project", in: windows, kind: "Window")
+            try TargetResolver.resolve("project", in: windows, kind: "window")
         } throws: { error in
             let error = error as? ControlError
             return error?.code == .ambiguous && error?.candidates?.count == 2
@@ -48,7 +48,7 @@ struct TargetResolverTests {
 
     @Test func unknownTargetIsNotFound() {
         #expect {
-            try TargetResolver.resolve("Calendar", in: windows, kind: "Window")
+            try TargetResolver.resolve("Calendar", in: windows, kind: "window")
         } throws: { error in
             (error as? ControlError)?.code == .notFound
         }

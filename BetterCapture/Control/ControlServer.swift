@@ -31,6 +31,13 @@ final class ControlServer {
     }
 
     func start() {
+        // Another copy of the app, such as a development build or the unit test host, must not
+        // take the socket away from the one already serving it
+        guard !Self.isAcceptingConnections(socketPath) else {
+            logger.warning("Another BetterCapture instance is serving the control socket")
+            return
+        }
+
         // A socket file left behind by a previous run would make binding fail
         unlink(socketPath)
 
@@ -69,6 +76,29 @@ final class ControlServer {
         listener?.cancel()
         listener = nil
         unlink(socketPath)
+    }
+
+    /// Whether a process is listening on the socket, as opposed to a file left behind
+    private static func isAcceptingConnections(_ path: String) -> Bool {
+        var address = sockaddr_un()
+        address.sun_family = sa_family_t(AF_UNIX)
+
+        let pathBytes = Array(path.utf8CString)
+        guard pathBytes.count <= MemoryLayout.size(ofValue: address.sun_path) else { return false }
+        withUnsafeMutableBytes(of: &address.sun_path) { buffer in
+            pathBytes.withUnsafeBytes { buffer.copyMemory(from: $0) }
+        }
+
+        let socket = Darwin.socket(AF_UNIX, SOCK_STREAM, 0)
+        guard socket >= 0 else { return false }
+        defer { close(socket) }
+
+        let result = withUnsafePointer(to: &address) { pointer in
+            pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                connect(socket, $0, socklen_t(MemoryLayout<sockaddr_un>.size))
+            }
+        }
+        return result == 0
     }
 
     private func serve(_ connection: NWConnection) {

@@ -48,6 +48,23 @@ Download the latest release from [GitHub Releases](https://github.com/jsattler/B
 
 ## Automation
 
+### Command line
+
+BetterCapture includes a `bettercapture` command for scripts and AI agents. Turn on **Allow Command-Line Control** in Settings → Command Line first.
+
+```bash
+bettercapture displays                                  # list displays, also: windows, apps
+bettercapture record --app com.apple.Safari --duration 30s --wait
+bettercapture record --area 0,0,1280,720                # x,y,width,height in points
+bettercapture stop                                      # prints the saved file's path
+```
+
+Every command accepts `--json`. Run `bettercapture --help` for all commands and exit codes, and `bettercapture skill show` for a guide written for AI agents.
+
+Homebrew puts the command on your `PATH`. Otherwise BetterCapture links it at `~/.local/bin/bettercapture`; Settings → Command Line shows whether your shell can find it. Shell completions: `bettercapture --generate-completion-script zsh` (or `bash`, `fish`).
+
+### URL scheme
+
 BetterCapture supports a custom URL scheme for external tools (Raycast, Shortcuts, Alfred):
 
 | URL | Action |

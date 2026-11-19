@@ -1,6 +1,7 @@
 included:
   - BetterCapture
   - BetterCaptureTests
+  - BetterCaptureCLI
 
 excluded:
   - BetterCapture.xcodeproj

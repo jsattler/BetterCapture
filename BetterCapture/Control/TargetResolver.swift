@@ -39,7 +39,7 @@ enum TargetResolver {
             if matches.count > 1 {
                 throw ControlError(
                     code: .ambiguous,
-                    message: "\(kind) \"\(query)\" matches \(matches.count) targets. Pass an ID instead.",
+                    message: "\"\(query)\" matches \(matches.count) \(kind)s. Pass an ID instead.",
                     candidates: matches.map { "\($0.id)\t\($0.name)" }
                 )
             }

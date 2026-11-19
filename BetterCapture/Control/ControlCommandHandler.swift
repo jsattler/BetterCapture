@@ -197,14 +197,14 @@ final class ControlCommandHandler {
             let candidates = try await capturableWindows().map {
                 TargetResolver.Candidate(item: $0, id: String($0.windowID), name: $0.title ?? "")
             }
-            let window = try TargetResolver.resolve(query, in: candidates, kind: "Window")
+            let window = try TargetResolver.resolve(query, in: candidates, kind: "window")
             return ContentSelection(filter: SCContentFilter(desktopIndependentWindow: window))
 
         case .app(let query):
             let candidates = try await capturableApps().map {
                 TargetResolver.Candidate(item: $0, id: $0.bundleIdentifier, name: $0.applicationName)
             }
-            let app = try TargetResolver.resolve(query, in: candidates, kind: "App")
+            let app = try TargetResolver.resolve(query, in: candidates, kind: "app")
             let display = try await display(showing: app)
             return ContentSelection(filter: SCContentFilter(display: display, including: [app], exceptingWindows: []))
 
@@ -235,7 +235,7 @@ final class ControlCommandHandler {
         let candidates = displays.map {
             TargetResolver.Candidate(item: $0, id: String($0.displayID), name: screen(for: $0.displayID)?.localizedName ?? "")
         }
-        return try TargetResolver.resolve(query, in: candidates, kind: "Display")
+        return try TargetResolver.resolve(query, in: candidates, kind: "display")
     }
 
     /// The display an application's largest window is on, so its capture is framed around it

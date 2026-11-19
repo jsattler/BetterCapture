@@ -10,6 +10,8 @@
 		6C5C123D2F3893FE0082CE23 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6C0990E12F2BE0C200D48100 /* Sparkle */; };
 		6C7AABCC2F783CC3006496CE /* BetterCapture.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = 6C7AABCB2F783CC3006496CE /* BetterCapture.xctestplan */; };
 		6CA1B0012F8700000082CE23 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 6CA1B0002F8700000082CE23 /* KeyboardShortcuts */; };
+		6CB2C100000000000000000B /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 6CB2C100000000000000000A /* ArgumentParser */; };
+		6CB2C1000000000000000010 /* bettercapture in Embed Command Line Tool */ = {isa = PBXBuildFile; fileRef = 6CB2C1000000000000000002 /* bettercapture */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -20,12 +22,20 @@
 			remoteGlobalIDString = 6C0990AE2F2BE0C100D48100;
 			remoteInfo = BetterCapture;
 		};
+		6CB2C100000000000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6C0990A72F2BE0C100D48100 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6CB2C1000000000000000001;
+			remoteInfo = BetterCaptureCLI;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		6C0990AF2F2BE0C100D48100 /* BetterCapture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetterCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C7AABC22F783B98006496CE /* BetterCaptureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BetterCaptureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C7AABCB2F783CC3006496CE /* BetterCapture.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = BetterCapture.xctestplan; sourceTree = "<group>"; };
+		6CB2C1000000000000000002 /* bettercapture */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = bettercapture; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -36,6 +46,13 @@
 			);
 			target = 6C0990AE2F2BE0C100D48100 /* BetterCapture */;
 		};
+		6CB2C100000000000000000C /* Exceptions for "BetterCapture" folder in "BetterCaptureCLI" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Control/ControlProtocol.swift,
+			);
+			target = 6CB2C1000000000000000001 /* BetterCaptureCLI */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -43,6 +60,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				6C0990B12F2BE0C100D48101 /* Exceptions for "BetterCapture" folder in "BetterCapture" target */,
+				6CB2C100000000000000000C /* Exceptions for "BetterCapture" folder in "BetterCaptureCLI" target */,
 			);
 			path = BetterCapture;
 			sourceTree = "<group>";
@@ -52,7 +70,26 @@
 			path = BetterCaptureTests;
 			sourceTree = "<group>";
 		};
+		6CB2C1000000000000000003 /* BetterCaptureCLI */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BetterCaptureCLI;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6CB2C100000000000000000F /* Embed Command Line Tool */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Helpers;
+			dstSubfolderSpec = 1;
+			files = (
+				6CB2C1000000000000000010 /* bettercapture in Embed Command Line Tool */,
+			);
+			name = "Embed Command Line Tool";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		6C0990AC2F2BE0C100D48100 /* Frameworks */ = {
@@ -71,6 +108,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6CB2C1000000000000000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6CB2C100000000000000000B /* ArgumentParser in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -80,6 +125,7 @@
 				6C7AABCB2F783CC3006496CE /* BetterCapture.xctestplan */,
 				6C0990B12F2BE0C100D48100 /* BetterCapture */,
 				6C7AABC32F783B98006496CE /* BetterCaptureTests */,
+				6CB2C1000000000000000003 /* BetterCaptureCLI */,
 				6C0990B02F2BE0C100D48100 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -89,6 +135,7 @@
 			children = (
 				6C0990AF2F2BE0C100D48100 /* BetterCapture.app */,
 				6C7AABC22F783B98006496CE /* BetterCaptureTests.xctest */,
+				6CB2C1000000000000000002 /* bettercapture */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -103,10 +150,12 @@
 				6C0990AB2F2BE0C100D48100 /* Sources */,
 				6C0990AC2F2BE0C100D48100 /* Frameworks */,
 				6C0990AD2F2BE0C100D48100 /* Resources */,
+				6CB2C100000000000000000F /* Embed Command Line Tool */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				6CB2C100000000000000000E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				6C0990B12F2BE0C100D48100 /* BetterCapture */,
@@ -143,6 +192,28 @@
 			productReference = 6C7AABC22F783B98006496CE /* BetterCaptureTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		6CB2C1000000000000000001 /* BetterCaptureCLI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6CB2C1000000000000000006 /* Build configuration list for PBXNativeTarget "BetterCaptureCLI" */;
+			buildPhases = (
+				6CB2C1000000000000000004 /* Sources */,
+				6CB2C1000000000000000005 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				6CB2C1000000000000000003 /* BetterCaptureCLI */,
+			);
+			name = BetterCaptureCLI;
+			packageProductDependencies = (
+				6CB2C100000000000000000A /* ArgumentParser */,
+			);
+			productName = bettercapture;
+			productReference = 6CB2C1000000000000000002 /* bettercapture */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -154,6 +225,9 @@
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					6C0990AE2F2BE0C100D48100 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					6CB2C1000000000000000001 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
 					6C7AABC12F783B98006496CE = {
@@ -174,6 +248,7 @@
 			packageReferences = (
 				6C0990E02F2BE0C200D48100 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				6CA1AFFF2F8700000082CE23 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+				6CB2C1000000000000000009 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6C0990B02F2BE0C100D48100 /* Products */;
@@ -182,6 +257,7 @@
 			targets = (
 				6C0990AE2F2BE0C100D48100 /* BetterCapture */,
 				6C7AABC12F783B98006496CE /* BetterCaptureTests */,
+				6CB2C1000000000000000001 /* BetterCaptureCLI */,
 			);
 		};
 /* End PBXProject section */
@@ -219,6 +295,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6CB2C1000000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -226,6 +309,11 @@
 			isa = PBXTargetDependency;
 			target = 6C0990AE2F2BE0C100D48100 /* BetterCapture */;
 			targetProxy = 6C7AABC62F783B98006496CE /* PBXContainerItemProxy */;
+		};
+		6CB2C100000000000000000E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6CB2C1000000000000000001 /* BetterCaptureCLI */;
+			targetProxy = 6CB2C100000000000000000D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -464,6 +552,40 @@
 			};
 			name = Release;
 		};
+		6CB2C1000000000000000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DMX24B5FC3;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = bettercapture;
+				SKIP_INSTALL = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		6CB2C1000000000000000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DMX24B5FC3;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = bettercapture;
+				SKIP_INSTALL = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -494,6 +616,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		6CB2C1000000000000000006 /* Build configuration list for PBXNativeTarget "BetterCaptureCLI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6CB2C1000000000000000007 /* Debug */,
+				6CB2C1000000000000000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -513,6 +644,14 @@
 				minimumVersion = 3.1.0;
 			};
 		};
+		6CB2C1000000000000000009 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-argument-parser";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -525,6 +664,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6CA1AFFF2F8700000082CE23 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
+		};
+		6CB2C100000000000000000A /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6CB2C1000000000000000009 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
