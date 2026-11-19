@@ -14,8 +14,6 @@
 	<string>https://github.com/jsattler/BetterCapture/releases/latest/download/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>SPARKLE_PUBLIC_KEY</string>
-	<key>SUEnableInstallerLauncherService</key>
-	<true/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

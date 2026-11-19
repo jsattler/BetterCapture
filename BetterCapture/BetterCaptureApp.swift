@@ -10,6 +10,10 @@ import SwiftUI
 
 @main
 struct BetterCaptureApp: App {
+    /// Stored properties are initialized in declaration order, so declaring this first moves
+    /// the sandboxed preferences over before the recorder or Sparkle read any settings
+    private let preferencesMigration: Void = SandboxPreferencesMigration.migrateIfNeeded()
+
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var updaterService = UpdaterService()
 
