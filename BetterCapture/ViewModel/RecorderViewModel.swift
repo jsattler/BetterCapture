@@ -94,9 +94,7 @@ final class RecorderViewModel {
     // MARK: - Private Properties
 
     private var recordingTimer: Timer?
-    private var recordingStartTime: Date?
-    private var pauseStartedAt: Date?
-    private var totalPausedDuration: TimeInterval = 0
+    private var recordingClock: RecordingClock?
     private var videoSize: CGSize = .zero
     private let areaSelectionOverlay = AreaSelectionOverlay()
     private let selectionBorderFrame = SelectionBorderFrame()
@@ -169,7 +167,7 @@ final class RecorderViewModel {
 
     private func pauseRecording() {
         guard state == .recording else { return }
-        pauseStartedAt = Date()
+        recordingClock?.pause()
         assetWriter.pause()
         state = .paused
         updateRecordingDuration()
@@ -177,11 +175,7 @@ final class RecorderViewModel {
 
     private func resumeRecording() {
         guard state == .paused else { return }
-        let now = Date()
-        if let pauseStartedAt {
-            totalPausedDuration += now.timeIntervalSince(pauseStartedAt)
-        }
-        self.pauseStartedAt = nil
+        recordingClock?.resume()
         assetWriter.resume()
         state = .recording
         updateRecordingDuration()
@@ -433,9 +427,7 @@ final class RecorderViewModel {
     // MARK: - Timer Management
 
     private func startTimer() {
-        recordingStartTime = Date()
-        pauseStartedAt = nil
-        totalPausedDuration = 0
+        recordingClock = RecordingClock()
         recordingDuration = 0
 
         recordingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
@@ -446,20 +438,14 @@ final class RecorderViewModel {
     }
 
     private func updateRecordingDuration() {
-        guard let recordingStartTime else { return }
-        let now = Date()
-        let currentPauseDuration = pauseStartedAt.map { now.timeIntervalSince($0) } ?? 0
-        recordingDuration = now.timeIntervalSince(recordingStartTime)
-            - totalPausedDuration
-            - currentPauseDuration
+        guard let recordingClock else { return }
+        recordingDuration = recordingClock.elapsed()
     }
 
     private func stopTimer() {
         recordingTimer?.invalidate()
         recordingTimer = nil
-        recordingStartTime = nil
-        pauseStartedAt = nil
-        totalPausedDuration = 0
+        recordingClock = nil
     }
 
     // MARK: - Helper Methods

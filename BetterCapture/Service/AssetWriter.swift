@@ -81,6 +81,11 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     private var totalPausedDuration: CMTime = .zero
     private var isPaused = false
 
+    /// Where each audio track's written samples end, and which tracks still have to be
+    /// joined up to that point after a resume.
+    private var audioTrackEnds: [ObjectIdentifier: CMTime] = [:]
+    private var tracksAwaitingResume: Set<ObjectIdentifier> = []
+
     /// Upper bound on how many frames a single gap may be filled with, as a
     /// multiple of `gridFrameRate`. A capture that stalls for longer than this is
     /// left with a hole rather than blocking the capture queue.
@@ -225,6 +230,7 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
             guard isWriting, isPaused, time.isNumeric, let pauseStartedAt else { return }
             totalPausedDuration = CMTimeAdd(totalPausedDuration, CMTimeSubtract(time, pauseStartedAt))
             resumedAt = time
+            tracksAwaitingResume = Set(audioTrackEnds.keys)
             self.pauseStartedAt = nil
             isPaused = false
         }
@@ -476,14 +482,74 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
     private func append(
         _ sampleBuffer: CMSampleBuffer, rebasedInto input: AVAssetWriterInput, label: String
     ) {
-        guard let rebased = rebase(sampleBuffer) else {
+        guard var rebased = rebase(sampleBuffer) else {
             logger.error("Failed to rebase \(label) sample buffer")
             return
         }
 
-        if !input.append(rebased) {
+        let track = ObjectIdentifier(input)
+        if tracksAwaitingResume.contains(track), let end = audioTrackEnds[track] {
+            guard let continued = continueTrack(rebased, from: end, into: input, label: label) else {
+                return
+            }
+            rebased = continued
+            tracksAwaitingResume.remove(track)
+        }
+
+        if input.append(rebased) {
+            audioTrackEnds[track] =
+                CMSampleBufferGetPresentationTimeStamp(rebased) + CMSampleBufferGetDuration(rebased)
+        } else {
             logger.error("Failed to append \(label) sample buffer")
         }
+    }
+
+    /// Joins the first buffer after a resume onto the end of the track.
+    ///
+    /// The writer lays audio samples back to back and ignores gaps and overlaps in their
+    /// timestamps, so a mismatch at the pause boundary would shift the rest of the track
+    /// against the video. A gap is filled with silence; an overlap is trimmed off the
+    /// buffer. Returns `nil` when the whole buffer falls before the end of the track.
+    private func continueTrack(
+        _ sampleBuffer: CMSampleBuffer, from end: CMTime, into input: AVAssetWriterInput, label: String
+    ) -> CMSampleBuffer? {
+        let start = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+        guard let formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer) else {
+            return sampleBuffer
+        }
+
+        if start > end {
+            if let silence = SilentAudioBuffer.make(
+                matching: formatDescription, duration: start - end, at: end),
+                !input.append(silence) {
+                logger.error("Failed to fill \(label) pause gap with silence")
+            }
+            return sampleBuffer
+        }
+
+        guard let sampleRate = CMAudioFormatDescriptionGetStreamBasicDescription(
+            formatDescription)?.pointee.mSampleRate
+        else {
+            return sampleBuffer
+        }
+
+        let overlapFrames = Int(((end - start).seconds * sampleRate).rounded())
+        let frameCount = CMSampleBufferGetNumSamples(sampleBuffer)
+        guard overlapFrames > 0 else { return sampleBuffer }
+        guard overlapFrames < frameCount else { return nil }
+
+        var trimmed: CMSampleBuffer?
+        let status = CMSampleBufferCopySampleBufferForRange(
+            allocator: kCFAllocatorDefault,
+            sampleBuffer: sampleBuffer,
+            sampleRange: CFRange(location: overlapFrames, length: frameCount - overlapFrames),
+            sampleBufferOut: &trimmed
+        )
+        guard status == noErr else {
+            logger.error("Failed to trim \(label) pause overlap: \(status)")
+            return nil
+        }
+        return trimmed
     }
 
     /// Returns a copy of `sampleBuffer` with its timestamps shifted so the session
@@ -565,6 +631,8 @@ final class AssetWriter: CaptureEngineSampleBufferDelegate, @unchecked Sendable 
         resumedAt = .invalid
         totalPausedDuration = .zero
         isPaused = false
+        audioTrackEnds = [:]
+        tracksAwaitingResume = []
     }
 
     // MARK: - Finalization
