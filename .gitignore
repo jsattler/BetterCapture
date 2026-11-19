@@ -93,6 +93,7 @@ Temporary Items
 # Other
 *.swp
 *.lock
+!.github/workflows/actions.lock
 *.log
 
 # Snippets

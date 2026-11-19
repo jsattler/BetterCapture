@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
 
       - name: Select Xcode version
         run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
@@ -247,14 +247,14 @@ jobs:
           mv appcast_new.xml "$RUNNER_TEMP/appcast.xml"
 
       - name: Upload DMG artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: ${{ env.APP_NAME }}-${{ steps.version.outputs.version }}-arm64.dmg
           path: ${{ env.DMG_PATH }}
           if-no-files-found: error
 
       - name: Upload appcast artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: appcast
           path: ${{ runner.temp }}/appcast.xml
