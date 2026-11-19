@@ -11,28 +11,71 @@ import SwiftUI
 
 /// The settings window for BetterCapture
 struct SettingsView: View {
+    static let windowID = "settings"
+
     @Bindable var settings: SettingsStore
     var updaterService: UpdaterService
 
+    @State private var navigation = SettingsNavigation()
+
     var body: some View {
-        TabView {
-            Tab("General", systemImage: "gearshape") {
-                GeneralSettingsView(settings: settings, updaterService: updaterService)
+        NavigationSplitView {
+            // Plain buttons instead of List selection, so the active item gets a
+            // subtle gray highlight rather than the accent-colored selection
+            List(SettingsPane.allCases) { pane in
+                Button {
+                    navigation.visit(pane)
+                } label: {
+                    Label {
+                        Text(pane.rawValue)
+                            .bold(pane == navigation.current)
+                    } icon: {
+                        SettingsSidebarIcon(pane: pane)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 6)
+                    .background(
+                        .fill.secondary.opacity(pane == navigation.current ? 1 : 0),
+                        in: .rect(cornerRadius: 8)
+                    )
+                    .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+                // The highlight spans the full row, so drop the default insets
+                .listRowInsets(EdgeInsets())
             }
-
-            Tab("Video", systemImage: "video") {
-                VideoSettingsView(settings: settings)
+            .toolbar(removing: .sidebarToggle)
+            .navigationSplitViewColumnWidth(220)
+        } detail: {
+            Group {
+                switch navigation.current {
+                case .general:
+                    GeneralSettingsView(settings: settings, updaterService: updaterService)
+                case .video:
+                    VideoSettingsView(settings: settings)
+                case .audio:
+                    AudioSettingsView(settings: settings)
+                case .shortcuts:
+                    ShortcutsSettingsView()
+                }
             }
+            .navigationTitle(navigation.current.rawValue)
+            .toolbar {
+                ToolbarItemGroup(placement: .navigation) {
+                    Button("Back", systemImage: "chevron.left") {
+                        navigation.goBack()
+                    }
+                    .disabled(!navigation.canGoBack)
 
-            Tab("Audio", systemImage: "waveform") {
-                AudioSettingsView(settings: settings)
-            }
-
-            Tab("Shortcuts", systemImage: "keyboard") {
-                ShortcutsSettingsView()
+                    Button("Forward", systemImage: "chevron.right") {
+                        navigation.goForward()
+                    }
+                    .disabled(!navigation.canGoForward)
+                }
             }
         }
-        .frame(width: 500, height: 420)
+        .frame(width: 720, height: 520)
     }
 }
 
@@ -46,19 +89,16 @@ struct ShortcutsSettingsView: View {
                 KeyboardShortcuts.Recorder("Pause / Resume Recording", name: .togglePause)
             }
 
-            Section("Content Selection") {
+            Section {
                 KeyboardShortcuts.Recorder("Select Content", name: .selectContent)
                 KeyboardShortcuts.Recorder("Select Area", name: .selectArea)
-            }
-
-            Section {
-                Text("Shortcuts work globally, even when BetterCapture is not focused.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Content Selection")
+            } footer: {
+                SettingsFooter("Shortcuts work globally, even when BetterCapture is not focused.")
             }
         }
         .formStyle(.grouped)
-        .padding()
     }
 }
 
@@ -126,12 +166,16 @@ struct VideoSettingsView: View {
                         Text(".\(format.rawValue)").tag(format)
                     }
                 }
+                .pickerStyle(.segmented)
+                .fixedSize()
 
                 Picker("Quality", selection: $settings.videoQuality) {
                     ForEach(VideoQuality.allCases) { quality in
                         Text(quality.rawValue).tag(quality)
                     }
                 }
+                .pickerStyle(.segmented)
+                .fixedSize()
                 .disabled(!settings.videoCodec.supportsQualitySetting)
                 .help(qualityHelpText)
             }
@@ -163,7 +207,6 @@ struct VideoSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .padding()
     }
 }
 
@@ -182,7 +225,7 @@ struct AudioSettingsView: View {
                     .help("Record audio from the default microphone input")
             }
 
-            Section("Format") {
+            Section {
                 Picker("Codec", selection: $settings.audioCodec) {
                     ForEach(AudioCodec.allCases) { codec in
                         let isSupported = settings.containerFormat.supportedAudioCodecs.contains(codec)
@@ -196,16 +239,13 @@ struct AudioSettingsView: View {
                     }
                 }
                 .help("AAC is compressed, PCM is uncompressed lossless (MOV only)")
-            }
-
-            Section {
-                Text("Audio tracks are recorded separately for post-processing flexibility.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Format")
+            } footer: {
+                SettingsFooter("Audio tracks are recorded separately for post-processing flexibility.")
             }
         }
         .formStyle(.grouped)
-        .padding()
     }
 }
 
@@ -266,7 +306,6 @@ struct GeneralSettingsView: View {
             AboutSection()
         }
         .formStyle(.grouped)
-        .padding()
     }
 
     /// Opens an NSOpenPanel to select a custom output directory

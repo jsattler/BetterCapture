@@ -11,7 +11,7 @@ import ScreenCaptureKit
 /// The main menu bar interface for BetterCapture
 struct MenuBarView: View {
     @Bindable var viewModel: RecorderViewModel
-    @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
     @Environment(\.dismiss) private var dismiss
     @State private var currentPreview: NSImage?
 
@@ -141,7 +141,7 @@ struct MenuBarView: View {
 
             MenuBarActionButton(title: "Settings...", systemImage: "gear") {
                 NSApplication.shared.activate(ignoringOtherApps: true)
-                openSettings()
+                openWindow(id: SettingsView.windowID)
             }
 
             MenuBarActionButton(title: "Quit...", systemImage: "power") {
