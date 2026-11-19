@@ -15,6 +15,9 @@ struct SettingsView: View {
 
     @Bindable var settings: SettingsStore
     var updaterService: UpdaterService
+    let audioDeviceService: AudioDeviceService
+    let cameraDeviceService: CameraDeviceService
+    let permissionService: PermissionService
 
     @State private var navigation = SettingsNavigation()
 
@@ -53,9 +56,13 @@ struct SettingsView: View {
                 case .general:
                     GeneralSettingsView(settings: settings, updaterService: updaterService)
                 case .video:
-                    VideoSettingsView(settings: settings)
+                    VideoSettingsView(
+                        settings: settings,
+                        cameraDeviceService: cameraDeviceService,
+                        permissionService: permissionService
+                    )
                 case .audio:
-                    AudioSettingsView(settings: settings)
+                    AudioSettingsView(settings: settings, audioDeviceService: audioDeviceService)
                 case .shortcuts:
                     ShortcutsSettingsView()
                 }
@@ -106,6 +113,8 @@ struct ShortcutsSettingsView: View {
 
 struct VideoSettingsView: View {
     @Bindable var settings: SettingsStore
+    let cameraDeviceService: CameraDeviceService
+    let permissionService: PermissionService
 
     private var alphaChannelHelpText: String {
         switch settings.videoCodec {
@@ -193,6 +202,28 @@ struct VideoSettingsView: View {
                     .help(captureNativeResHelpText)
             }
 
+            Section("Camera") {
+                Toggle("Presenter Overlay", isOn: $settings.presenterOverlayEnabled)
+                    .help("Composite the camera into the recording")
+
+                if settings.presenterOverlayEnabled {
+                    Picker("Camera", selection: $settings.selectedCameraID) {
+                        Text("System Default").tag(String?.none)
+                        ForEach(cameraDeviceService.availableDevices) { device in
+                            Text(device.name).tag(Optional(device.id))
+                        }
+                    }
+                }
+            }
+            .onChange(of: settings.presenterOverlayEnabled) { _, isEnabled in
+                // Ask up front rather than letting the first recording fail on a denied camera
+                guard isEnabled else { return }
+
+                Task {
+                    await permissionService.requestCameraPermission()
+                }
+            }
+
             Section("Display Elements") {
                 Toggle("Show Cursor", isOn: $settings.showCursor)
                 Toggle("Show Wallpaper", isOn: $settings.showWallpaper)
@@ -214,6 +245,7 @@ struct VideoSettingsView: View {
 
 struct AudioSettingsView: View {
     @Bindable var settings: SettingsStore
+    let audioDeviceService: AudioDeviceService
 
     var body: some View {
         Form {
@@ -222,7 +254,16 @@ struct AudioSettingsView: View {
                     .help("Record audio from applications and system sounds")
 
                 Toggle("Capture Microphone", isOn: $settings.captureMicrophone)
-                    .help("Record audio from the default microphone input")
+                    .help("Record audio from the selected microphone input")
+
+                if settings.captureMicrophone {
+                    Picker("Microphone", selection: $settings.selectedMicrophoneID) {
+                        Text("System Default").tag(String?.none)
+                        ForEach(audioDeviceService.availableDevices) { device in
+                            Text(device.name).tag(Optional(device.id))
+                        }
+                    }
+                }
             }
 
             Section {
@@ -268,6 +309,19 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
+            Section {
+                Picker("Layout", selection: $settings.layoutMode) {
+                    ForEach(LayoutMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+            } header: {
+                Text("Appearance")
+            } footer: {
+                SettingsFooter("Compact replaces the menu bar window with a floating badge that appears when you click the menu bar icon.")
+            }
+
             Section("Output Location") {
                 LabeledContent {
                     HStack {
@@ -354,5 +408,11 @@ struct AboutSection: View {
 // MARK: - Preview
 
 #Preview {
-    SettingsView(settings: SettingsStore(), updaterService: UpdaterService())
+    SettingsView(
+        settings: SettingsStore(),
+        updaterService: UpdaterService(),
+        audioDeviceService: AudioDeviceService(),
+        cameraDeviceService: CameraDeviceService(),
+        permissionService: PermissionService()
+    )
 }

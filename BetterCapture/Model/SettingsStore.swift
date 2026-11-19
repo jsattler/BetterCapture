@@ -463,6 +463,20 @@ final class SettingsStore {
         }
     }
 
+    // MARK: - Layout Settings
+
+    var layoutMode: LayoutMode {
+        get {
+            access(keyPath: \.layoutMode)
+            return defaults.string(forKey: LayoutMode.storageKey).flatMap(LayoutMode.init) ?? .comfortable
+        }
+        set {
+            withMutation(keyPath: \.layoutMode) {
+                defaults.set(newValue.rawValue, forKey: LayoutMode.storageKey)
+            }
+        }
+    }
+
     // MARK: - Presenter Overlay Settings
 
     var presenterOverlayEnabled: Bool {

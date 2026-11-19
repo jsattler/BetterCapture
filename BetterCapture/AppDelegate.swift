@@ -22,10 +22,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     let viewModel = RecorderViewModel()
 
+    private var compactBadge: CompactBadgeCoordinator?
+
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "BetterCapture", category: "AppDelegate")
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         registerKeyboardShortcuts()
+
+        let compactBadge = CompactBadgeCoordinator(viewModel: viewModel)
+        compactBadge.start()
+        self.compactBadge = compactBadge
+    }
+
+    /// In the compact layout the `MenuBarExtra` is removed, so hiding the floating
+    /// badge closes the last window and SwiftUI would otherwise quit the app
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
