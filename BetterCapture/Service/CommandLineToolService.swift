@@ -21,6 +21,9 @@ final class CommandLineToolService {
         case available
         /// `bettercapture` runs a different copy, such as from another BetterCapture install
         case otherCopy(path: String)
+        /// Something else is at `~/.local/bin/bettercapture`, so the link couldn't be created
+        case linkBlocked
+        /// The link exists, but the shell doesn't search `~/.local/bin`
         case notOnPath
     }
 
@@ -43,13 +46,15 @@ final class CommandLineToolService {
 
     func refresh() async {
         status = .checking
+        let isLinked = CommandLineToolInstaller.installLink()
         let foundPath = await findInLoginShell()
-        status = Self.status(foundPath: foundPath, toolURL: CommandLineToolInstaller.toolURL)
+        status = Self.status(foundPath: foundPath, isLinked: isLinked, toolURL: CommandLineToolInstaller.toolURL)
     }
 
     /// Compares the command the shell found with the tool inside this app
-    nonisolated static func status(foundPath: String?, toolURL: URL) -> Status {
-        guard let foundPath else { return .notOnPath }
+    /// - Parameter isLinked: Whether `~/.local/bin/bettercapture` points at the tool
+    nonisolated static func status(foundPath: String?, isLinked: Bool, toolURL: URL) -> Status {
+        guard let foundPath else { return isLinked ? .notOnPath : .linkBlocked }
 
         let resolved = URL(filePath: foundPath).resolvingSymlinksInPath()
         return resolved == toolURL.resolvingSymlinksInPath() ? .available : .otherCopy(path: resolved.path(percentEncoded: false))

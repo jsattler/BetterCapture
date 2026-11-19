@@ -37,10 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         startControlServer()
 
-        // Development builds would point the link at a build folder instead of the installed app
-        #if !DEBUG
         CommandLineToolInstaller.installLink()
-        #endif
     }
 
     func applicationWillTerminate(_ notification: Notification) {

@@ -76,8 +76,9 @@ struct CommandLineToolInstallerTests {
         CommandLineToolInstaller.installLink(at: linkURL, to: tool)
         let linkPath = linkURL.path(percentEncoded: false)
 
-        #expect(CommandLineToolService.status(foundPath: linkPath, toolURL: tool) == .available)
-        #expect(CommandLineToolService.status(foundPath: other.path(percentEncoded: false), toolURL: tool) != .available)
-        #expect(CommandLineToolService.status(foundPath: nil, toolURL: tool) == .notOnPath)
+        #expect(CommandLineToolService.status(foundPath: linkPath, isLinked: true, toolURL: tool) == .available)
+        #expect(CommandLineToolService.status(foundPath: other.path(percentEncoded: false), isLinked: true, toolURL: tool) != .available)
+        #expect(CommandLineToolService.status(foundPath: nil, isLinked: true, toolURL: tool) == .notOnPath)
+        #expect(CommandLineToolService.status(foundPath: nil, isLinked: false, toolURL: tool) == .linkBlocked)
     }
 }

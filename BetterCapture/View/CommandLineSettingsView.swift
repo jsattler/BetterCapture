@@ -66,6 +66,12 @@ private struct CommandLineToolStatusRow: View {
                     .foregroundStyle(.secondary)
                     .textSelection(.enabled)
             }
+        case .linkBlocked:
+            LabeledContent("Status") {
+                Text("\(CommandLineToolInstaller.linkURL.path(percentEncoded: false)) already exists and isn't BetterCapture's. Remove it, or run the tool by its full path.")
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+            }
         case .notOnPath:
             VStack(alignment: .leading) {
                 LabeledContent("Status") {
