@@ -775,6 +775,25 @@ final class SettingsStore {
 
     /// Returns the full output URL for a new recording
     func generateOutputURL() -> URL {
-        outputDirectory.appending(path: generateFilename())
+        Self.availableURL(for: outputDirectory.appending(path: generateFilename()))
+    }
+
+    /// The URL itself if no file exists there yet, otherwise the first free one with a number
+    /// appended, such as `BetterCapture_….mov` → `BetterCapture_… 2.mov`.
+    ///
+    /// Recordings started within the same second would otherwise share a name, and setting up
+    /// the writer deletes a file that already exists at its URL.
+    static func availableURL(for url: URL) -> URL {
+        let directory = url.deletingLastPathComponent()
+        let baseName = url.deletingPathExtension().lastPathComponent
+        let fileExtension = url.pathExtension
+
+        var candidate = url
+        var number = 2
+        while FileManager.default.fileExists(atPath: candidate.path(percentEncoded: false)) {
+            candidate = directory.appending(path: "\(baseName) \(number).\(fileExtension)")
+            number += 1
+        }
+        return candidate
     }
 }
