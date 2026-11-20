@@ -109,13 +109,13 @@ final class ControlServer {
 
             do {
                 let line = try await connection.receiveLine()
-                let request = try JSONDecoder().decode(ControlRequest.self, from: line)
+                let request = try ControlProtocol.makeDecoder().decode(ControlRequest.self, from: line)
                 response = await handler.handle(request)
             } catch {
                 response = .failure(ControlError(code: .invalidRequest, message: "Could not read the request: \(error.localizedDescription)"))
             }
 
-            if let data = try? JSONEncoder().encode(response) {
+            if let data = try? ControlProtocol.makeEncoder().encode(response) {
                 await connection.sendLine(data)
             }
 

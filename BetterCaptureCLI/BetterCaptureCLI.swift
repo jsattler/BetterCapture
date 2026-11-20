@@ -17,8 +17,8 @@ struct BetterCaptureCLI: ParsableCommand {
             Commands are carried out by the BetterCapture app, which is launched if it isn't \
             running. Turn on "Allow Command-Line Control" in BetterCapture Settings → Command Line first.
 
-            Exit codes: 0 success, 1 failure, 2 invalid command line, 3 target not found or \
-            ambiguous, 4 BetterCapture not reachable, 5 permission missing or command-line control turned off.
+            Exit codes: 0 success, 1 failure, 2 invalid command line, 3 target or recording not \
+            found or ambiguous, 4 BetterCapture not reachable, 5 permission missing or command-line control turned off.
 
             AI agents: run `bettercapture skill show` for a usage guide.
             """,

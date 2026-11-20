@@ -55,9 +55,13 @@ BetterCapture includes a `bettercapture` command for scripts and AI agents. Turn
 ```bash
 bettercapture displays                                  # list displays, also: windows, apps
 bettercapture record --app com.apple.Safari --duration 30s --wait
-bettercapture record --area 0,0,1280,720                # x,y,width,height in points
-bettercapture stop                                      # prints the saved file's path
+bettercapture record --area 0,0,1280,720 --name intro  # x,y,width,height in points
+bettercapture status                                    # recordings in progress and recently ended
+bettercapture stop intro                                # by ID or name; prints the saved file's path
+bettercapture stop --all
 ```
+
+Several recordings can run at once. Each gets an ID, and optionally a name, that `stop`, `pause`, `resume`, `wait` and `status` accept. Recordings started from the command line are separate from the one controlled in the menu bar.
 
 Every command accepts `--json`. Run `bettercapture --help` for all commands and exit codes, and `bettercapture skill show` for a guide written for AI agents.
 

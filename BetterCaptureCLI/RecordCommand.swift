@@ -18,8 +18,8 @@ struct RecordCommand: ParsableCommand {
             then an exact name ignoring case, then part of a name. List them with the displays, \
             windows and apps commands.
 
-            Recording uses the settings chosen in BetterCapture. The output path is printed as \
-            soon as the recording starts.
+            Recording uses the settings chosen in BetterCapture. Any number of recordings can \
+            run at once. The recording's ID and output path are printed as soon as it starts.
             """
     )
 
@@ -34,6 +34,9 @@ struct RecordCommand: ParsableCommand {
 
     @Option(help: ArgumentHelp("Area of a display to record, in points from its top-left corner.", valueName: "x,y,width,height"))
     var area: AreaArgument?
+
+    @Option(help: "A name to tell the recording apart by. Other commands accept it in place of the ID.")
+    var name: String?
 
     @Option(help: ArgumentHelp("Stop automatically after this long, such as 90, 30s, 2m or 1h.", valueName: "duration"))
     var duration: DurationArgument?
@@ -65,22 +68,22 @@ struct RecordCommand: ParsableCommand {
     }
 
     func run() throws {
-        let options = RecordOptions(target: target, durationSeconds: duration?.seconds)
-        guard case .status(let status) = try output.send(.record(options)) else { throw output.unexpectedResponse() }
+        let options = RecordOptions(target: target, name: name, durationSeconds: duration?.seconds)
+        guard case .recording(let started) = try output.send(.record(options)) else { throw output.unexpectedResponse() }
 
         guard wait else {
-            output.emit(status, human: "Recording to \(status.outputPath ?? "")")
+            output.emit(started, human: started.text)
             return
         }
 
         if !output.json {
-            output.printError("Recording to \(status.outputPath ?? ""). Press Ctrl-C to stop.")
+            output.printError("\(started.text). Press Ctrl-C to stop.")
         }
 
-        let interruptSource = Self.stopOnInterrupt()
+        let interruptSource = Self.stopOnInterrupt(started.id)
         defer { interruptSource.cancel() }
 
-        guard case .recording(let recording) = try output.send(.wait, launchIfNeeded: false) else {
+        guard case .recording(let recording) = try output.send(.wait(started.id), launchIfNeeded: false) else {
             throw output.unexpectedResponse()
         }
         output.emit(recording, human: recording.outputPath)
@@ -88,13 +91,16 @@ struct RecordCommand: ParsableCommand {
 
     /// Stops the recording on the first Ctrl-C, so the wait ends with a saved file. A second
     /// Ctrl-C quits right away, in case BetterCapture doesn't respond.
-    private static func stopOnInterrupt() -> DispatchSourceSignal {
+    private static func stopOnInterrupt(_ recordingID: String) -> DispatchSourceSignal {
         signal(SIGINT, SIG_IGN)
 
         let source = DispatchSource.makeSignalSource(signal: SIGINT)
         source.setEventHandler {
             signal(SIGINT, SIG_DFL)
-            _ = try? ControlClient.current().send(.stop(copyToClipboard: false), launchIfNeeded: false)
+            _ = try? ControlClient.current().send(
+                .stop(recordingID, all: false, copyToClipboard: false),
+                launchIfNeeded: false
+            )
         }
         source.resume()
         return source

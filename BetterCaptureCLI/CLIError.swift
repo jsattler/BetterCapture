@@ -31,7 +31,7 @@ struct CLIError: Error, Encodable {
         case .invalidRequest: 2
         case .notFound, .ambiguous: 3
         case .disabled, .permissionDenied: 5
-        case .unsupportedVersion, .alreadyRecording, .notRecording, .failed: 1
+        case .unsupportedVersion, .notRecording, .failed: 1
         }
         self.init(code: error.code.rawValue, message: error.message, candidates: error.candidates, exitCode: exitCode)
     }

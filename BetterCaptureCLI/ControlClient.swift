@@ -47,12 +47,12 @@ struct ControlClient {
         let socket = try connect(launchIfNeeded: launchIfNeeded)
         defer { close(socket) }
 
-        guard let request = try? JSONEncoder().encode(ControlRequest(command: command)) else {
+        guard let request = try? ControlProtocol.makeEncoder().encode(ControlRequest(command: command)) else {
             throw CLIError.invalidResponse
         }
         try write(request + [0x0A], to: socket)
 
-        guard let response = try? JSONDecoder().decode(ControlResponse.self, from: readLine(from: socket)) else {
+        guard let response = try? ControlProtocol.makeDecoder().decode(ControlResponse.self, from: readLine(from: socket)) else {
             throw CLIError.invalidResponse
         }
         if let error = response.error {

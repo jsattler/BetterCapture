@@ -95,7 +95,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let server = ControlServer(
             socketPath: ControlProtocol.socketPath(bundleIdentifier: bundleID),
-            handler: ControlCommandHandler(viewModel: viewModel)
+            handler: ControlCommandHandler(settings: viewModel.settings, notificationService: viewModel.notificationService)
         )
         server.start()
         controlServer = server

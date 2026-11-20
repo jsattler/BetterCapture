@@ -13,10 +13,13 @@ struct ResumeCommand: ParsableCommand {
         abstract: "Resume a paused recording."
     )
 
+    @OptionGroup var selection: RecordingArgument
     @OptionGroup var output: OutputOptions
 
     func run() throws {
-        guard case .status(let status) = try output.send(.resume, launchIfNeeded: false) else { throw output.unexpectedResponse() }
-        output.emit(status, human: status.text)
+        guard case .recording(let recording) = try output.send(.resume(selection.recording), launchIfNeeded: false) else {
+            throw output.unexpectedResponse()
+        }
+        output.emit(recording, human: recording.text)
     }
 }

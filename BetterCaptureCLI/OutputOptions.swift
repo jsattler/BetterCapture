@@ -57,7 +57,7 @@ struct OutputOptions: ParsableArguments {
     }
 
     private static func encode(_ value: some Encodable) -> String {
-        let encoder = JSONEncoder()
+        let encoder = ControlProtocol.makeEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         guard let data = try? encoder.encode(value) else { return "{}" }
         return String(bytes: data, encoding: .utf8) ?? "{}"

@@ -6,23 +6,25 @@
 //
 
 import AppKit
-import Observation
 import OSLog
 import ScreenCaptureKit
 
-/// Carries out commands from the `bettercapture` command-line tool on the shared recorder.
+/// Carries out commands from the `bettercapture` command-line tool.
 ///
-/// The command line and the menu bar act on the same ``RecorderViewModel``, so a recording
-/// started from either one can be paused or stopped from the other.
+/// Every recording started from the command line is a separate ``RecordingSession``, so any
+/// number of them can run at once. They are independent of the recording controlled from
+/// the menu bar, which the command line doesn't see.
 final class ControlCommandHandler {
 
-    private let viewModel: RecorderViewModel
-    private var durationTask: Task<Void, Never>?
+    private let settings: SettingsStore
+    private let notificationService: NotificationService
+    private let sessions = RecordingSessionStore()
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "BetterCapture", category: "ControlCommandHandler")
 
-    init(viewModel: RecorderViewModel) {
-        self.viewModel = viewModel
+    init(settings: SettingsStore, notificationService: NotificationService) {
+        self.settings = settings
+        self.notificationService = notificationService
     }
 
     func handle(_ request: ControlRequest) async -> ControlResponse {
@@ -35,7 +37,7 @@ final class ControlCommandHandler {
 
         // Without this opt-in, any local process could record the screen using
         // BetterCapture's Screen Recording permission
-        guard viewModel.settings.allowCommandLineControl else {
+        guard settings.allowCommandLineControl else {
             return .failure(ControlError(
                 code: .disabled,
                 message: "Command-line control is turned off. Turn it on in BetterCapture Settings → Command Line."
@@ -55,8 +57,9 @@ final class ControlCommandHandler {
 
     private func perform(_ command: ControlCommand) async throws -> ControlResult {
         switch command {
-        case .status:
-            return .status(status())
+        case .status(let selector):
+            let matching = try selector.map { [try sessions.session(matching: $0)] } ?? sessions.sessions
+            return .recordings(matching.map(\.info))
         case .listDisplays:
             return .displays(try await shareableContent().displays.map(displayInfo))
         case .listWindows:
@@ -64,110 +67,107 @@ final class ControlCommandHandler {
         case .listApps:
             return .apps(try await capturableApps().map(appInfo))
         case .record(let options):
-            return .status(try await record(options))
-        case .stop(let copyToClipboard):
-            return .recording(try await stop(copyToClipboard: copyToClipboard))
-        case .pause:
-            return .status(try togglePause(from: .recording))
-        case .resume:
-            return .status(try togglePause(from: .paused))
-        case .wait:
-            return .recording(try await waitForRecording())
+            return .recording(try await record(options))
+        case .stop(_, all: true, let copyToClipboard):
+            return .recordings(await stopAll(copyToClipboard: copyToClipboard))
+        case .stop(let selector, all: false, let copyToClipboard):
+            return .recording(try await stop(selector, copyToClipboard: copyToClipboard))
+        case .pause(let selector):
+            return .recording(try pause(selector))
+        case .resume(let selector):
+            return .recording(try resume(selector))
+        case .wait(let selector):
+            return .recording(try await wait(for: selector))
         }
     }
 
     // MARK: - Recording
 
-    private func record(_ options: RecordOptions) async throws -> RecorderStatus {
-        guard viewModel.state == .idle else {
-            throw ControlError(code: .alreadyRecording, message: "A recording is already in progress. Stop it first.")
-        }
-
+    private func record(_ options: RecordOptions) async throws -> RecordingInfo {
         let selection = try await contentSelection(for: options.target)
-        try await viewModel.selectContent(selection.filter, sourceRect: selection.sourceRect, screen: selection.screen)
-        await viewModel.startRecording()
+        let session = RecordingSession(
+            id: sessions.makeID(),
+            name: options.name,
+            target: selection.description,
+            settings: settings,
+            notificationService: notificationService
+        )
 
-        guard viewModel.isRecording, let outputURL = viewModel.currentOutputURL else {
-            throw controlError(for: viewModel.lastError)
+        do {
+            try await session.start(
+                filter: selection.filter,
+                sourceRect: selection.sourceRect,
+                screen: selection.screen,
+                durationSeconds: options.durationSeconds
+            )
+        } catch {
+            throw controlError(for: error)
         }
 
-        if let durationSeconds = options.durationSeconds {
-            scheduleStop(of: outputURL, after: durationSeconds)
-        }
-
-        return status()
+        sessions.add(session)
+        return session.info
     }
 
-    private func stop(copyToClipboard: Bool) async throws -> RecordingInfo {
-        guard viewModel.isRecording, let outputURL = viewModel.currentOutputURL else { throw notRecording }
+    private func stop(_ selector: RecordingSelector?, copyToClipboard: Bool) async throws -> RecordingInfo {
+        let session = try sessions.session(matching: selector)
+        guard !session.hasEnded else { throw notRecording(session) }
 
-        await viewModel.stopRecording(copyToClipboard: copyToClipboard)
-        return try finishedRecording(outputURL)
+        // A recording already stopping, such as at the end of its duration, is waited for
+        await session.stop(copyToClipboard: copyToClipboard)
+        await session.waitUntilEnded()
+        return try endedRecording(session)
     }
 
-    /// Pauses a running recording or resumes a paused one, as long as it is in the expected state
-    private func togglePause(from expectedState: RecorderViewModel.RecordingState) throws -> RecorderStatus {
-        guard viewModel.state == expectedState else {
-            throw expectedState == .paused
-                ? ControlError(code: .notRecording, message: "No recording is paused.")
-                : notRecording
-        }
-        viewModel.togglePause()
-        return status()
-    }
+    /// Stops every active recording at once. Failures are reported per recording.
+    private func stopAll(copyToClipboard: Bool) async -> [RecordingInfo] {
+        let active = sessions.activeSessions
 
-    private func waitForRecording() async throws -> RecordingInfo {
-        guard viewModel.state != .idle, let outputURL = viewModel.currentOutputURL else { throw notRecording }
-
-        while viewModel.state != .idle {
-            await withCheckedContinuation { continuation in
-                withObservationTracking {
-                    _ = viewModel.state
-                } onChange: {
-                    continuation.resume()
-                }
+        await withTaskGroup { group in
+            for session in active {
+                // Only one file fits on the clipboard
+                let copies = copyToClipboard && active.count == 1
+                group.addTask { await session.stop(copyToClipboard: copies) }
             }
         }
 
-        return try finishedRecording(outputURL)
+        return active.map(\.info)
     }
 
-    /// The result of a recording that has just ended, or the error that kept it from being saved
-    private func finishedRecording(_ outputURL: URL) throws -> RecordingInfo {
-        guard viewModel.lastRecordingURL == outputURL else {
-            throw controlError(for: viewModel.lastError)
+    private func pause(_ selector: RecordingSelector?) throws -> RecordingInfo {
+        let session = try sessions.session(matching: selector)
+        guard session.state == .recording else {
+            throw ControlError(code: .notRecording, message: "Recording \(session.id) isn't running.")
         }
-        return RecordingInfo(outputPath: outputURL.path(percentEncoded: false))
+        session.pause()
+        return session.info
     }
 
-    private func scheduleStop(of outputURL: URL, after seconds: Double) {
-        durationTask?.cancel()
-        durationTask = Task { [viewModel] in
-            try? await Task.sleep(for: .seconds(seconds))
-
-            // The recording may have been stopped, and another one started, in the meantime
-            guard !Task.isCancelled, viewModel.currentOutputURL == outputURL else { return }
-            await viewModel.stopRecording()
+    private func resume(_ selector: RecordingSelector?) throws -> RecordingInfo {
+        let session = try sessions.session(matching: selector)
+        guard session.state == .paused else {
+            throw ControlError(code: .notRecording, message: "Recording \(session.id) isn't paused.")
         }
+        session.resume()
+        return session.info
     }
 
-    private func status() -> RecorderStatus {
-        let state = switch viewModel.state {
-        case .idle: "idle"
-        case .recording: "recording"
-        case .paused: "paused"
-        case .stopping: "stopping"
+    /// Waits until the recording ends. A recording that already ended is returned right away.
+    private func wait(for selector: RecordingSelector?) async throws -> RecordingInfo {
+        let session = try sessions.session(matching: selector)
+        await session.waitUntilEnded()
+        return try endedRecording(session)
+    }
+
+    /// The recording, or the error that kept it from being saved
+    private func endedRecording(_ session: RecordingSession) throws -> RecordingInfo {
+        guard session.state == .finished else {
+            throw controlError(for: session.error)
         }
-
-        return RecorderStatus(
-            state: state,
-            durationSeconds: viewModel.recordingDuration,
-            outputPath: viewModel.currentOutputURL?.path(percentEncoded: false)
-        )
+        return session.info
     }
 
-    private var notRecording: ControlError {
-        ControlError(code: .notRecording, message: "No recording is in progress.")
+    private func notRecording(_ session: RecordingSession) -> ControlError {
+        ControlError(code: .notRecording, message: "Recording \(session.id) has already ended.")
     }
 
     private func controlError(for error: Error?) -> ControlError {
@@ -182,6 +182,8 @@ final class ControlCommandHandler {
     // MARK: - Content Selection
 
     private struct ContentSelection {
+        /// What is recorded, in words, see ``RecordingInfo/target``
+        var description: String
         var filter: SCContentFilter
         var sourceRect: CGRect?
         var screen: NSScreen?
@@ -191,14 +193,20 @@ final class ControlCommandHandler {
         switch target {
         case .display(let query):
             let display = try await resolveDisplay(query)
-            return ContentSelection(filter: SCContentFilter(display: display, excludingWindows: []))
+            return ContentSelection(
+                description: "display \(display.displayID)",
+                filter: SCContentFilter(display: display, excludingWindows: [])
+            )
 
         case .window(let query):
             let candidates = try await capturableWindows().map {
                 TargetResolver.Candidate(item: $0, id: String($0.windowID), name: $0.title ?? "")
             }
             let window = try TargetResolver.resolve(query, in: candidates, kind: "window")
-            return ContentSelection(filter: SCContentFilter(desktopIndependentWindow: window))
+            return ContentSelection(
+                description: "window \(window.windowID) \"\(window.title ?? "")\"",
+                filter: SCContentFilter(desktopIndependentWindow: window)
+            )
 
         case .app(let query):
             let candidates = try await capturableApps().map {
@@ -206,7 +214,10 @@ final class ControlCommandHandler {
             }
             let app = try TargetResolver.resolve(query, in: candidates, kind: "app")
             let display = try await display(showing: app)
-            return ContentSelection(filter: SCContentFilter(display: display, including: [app], exceptingWindows: []))
+            return ContentSelection(
+                description: "app \(app.bundleIdentifier)",
+                filter: SCContentFilter(display: display, including: [app], exceptingWindows: [])
+            )
 
         case .area(let area, let displayQuery):
             let display = try await resolveDisplay(displayQuery)
@@ -217,6 +228,7 @@ final class ControlCommandHandler {
                 scale: screen?.backingScaleFactor ?? 2
             )
             return ContentSelection(
+                description: "area \(Int(area.left)),\(Int(area.top)),\(Int(area.width)),\(Int(area.height)) of display \(display.displayID)",
                 filter: SCContentFilter(display: display, excludingWindows: []),
                 sourceRect: sourceRect,
                 screen: screen

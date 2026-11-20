@@ -52,17 +52,29 @@ enum SkillGuide {
         bettercapture record --app com.apple.Safari --json       # one app's windows
         bettercapture record --window 'Release Notes' --json     # one window, by title or ID
         bettercapture record --display main --area 0,0,800,600 --json   # x,y,width,height in points
+        bettercapture record --name demo --json                  # a name to refer to it by
         ```
 
-        `record` returns as soon as the recording starts. `outputPath` already names the
-        file it will be saved to. To end it:
+        `record` returns as soon as the recording starts. Its `id` identifies the recording,
+        and `outputPath` already names the file it will be saved to. To end it:
 
         - Pass `--duration 30s` (or `90`, `2m`, `1h`) to stop automatically.
-        - Run `bettercapture stop --json`, which prints `outputPath` once the file is saved.
-        - Run `bettercapture wait --json` to block until it ends, however it ends.
+        - Run `bettercapture stop <id> --json`, which prints `outputPath` once the file is saved.
+        - Run `bettercapture wait <id> --json` to block until it ends, however it ends.
 
         `record --duration 10s --wait --json` records, waits and prints the saved file in
-        one step. Only one recording runs at a time.
+        one step.
+
+        ## Several recordings
+
+        Any number of recordings can run at once, each with its own target. `stop`, `pause`,
+        `resume`, `wait` and `status` take the recording's ID or name. Leaving it out works
+        only while exactly one recording is in progress; otherwise the command exits with
+        code 3 and lists the recordings in `error.candidates`. Prefer passing the ID.
+        `bettercapture stop --all --json` stops every recording and returns `recordings`.
+
+        Recordings started from the menu bar aren't visible here, and are never stopped by
+        these commands.
 
         ## Find targets
 
@@ -79,9 +91,13 @@ enum SkillGuide {
 
         ## Other commands
 
-        - `bettercapture status --json`: `state` is `idle`, `recording`, `paused` or `stopping`.
-        - `bettercapture pause` and `bettercapture resume`.
-        - `bettercapture stop --copy` also copies the file to the clipboard.
+        - `bettercapture status --json` lists `recordings`: those in progress and the last
+          50 that ended since BetterCapture started. Each has `id`, `name`, `state`
+          (`recording`, `paused`, `stopping`, `finished` or `failed`), `target`, `startedAt`,
+          `endedAt`, `durationSeconds`, `outputPath` and, when it failed, `error`.
+          `status <id>` shows one.
+        - `bettercapture pause <id>` and `bettercapture resume <id>`.
+        - `bettercapture stop <id> --copy` also copies the file to the clipboard.
 
         ## Errors
 
@@ -91,7 +107,7 @@ enum SkillGuide {
         | Exit code | Meaning |
         | --- | --- |
         | 0 | Success |
-        | 1 | Failure, such as `already_recording` or `not_recording` |
+        | 1 | Failure, such as `not_recording` |
         | 2 | Invalid command line or area |
         | 3 | Target not found or ambiguous |
         | 4 | BetterCapture couldn't be reached |

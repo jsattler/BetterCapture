@@ -32,6 +32,19 @@ nonisolated enum ControlProtocol {
             : NSTemporaryDirectory()
         return URL(filePath: directory).appending(path: "\(bundleIdentifier).sock").path(percentEncoded: false)
     }
+
+    /// Dates are sent as ISO 8601 strings, so the JSON the tool prints is readable
+    static func makeEncoder() -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        return encoder
+    }
+
+    static func makeDecoder() -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }
 }
 
 // MARK: - Requests
@@ -41,21 +54,30 @@ nonisolated struct ControlRequest: Codable, Sendable {
     var command: ControlCommand
 }
 
+/// Commands that act on a recording take a ``RecordingSelector``. Without one, they act on
+/// the only active recording and fail as ambiguous when several are active.
 nonisolated enum ControlCommand: Codable, Sendable, Equatable {
-    case status
+    /// Lists the active and recently ended recordings, or the selected one
+    case status(RecordingSelector?)
     case listDisplays
     case listWindows
     case listApps
     case record(RecordOptions)
-    case stop(copyToClipboard: Bool)
-    case pause
-    case resume
-    /// Waits until the active recording ends
-    case wait
+    /// Stops the selected recording, or every active one when `all` is set
+    case stop(RecordingSelector?, all: Bool, copyToClipboard: Bool)
+    case pause(RecordingSelector?)
+    case resume(RecordingSelector?)
+    /// Waits until the selected recording ends
+    case wait(RecordingSelector?)
 }
+
+/// A recording's ID or name, matched the same way as capture targets, see ``TargetResolver``
+typealias RecordingSelector = String
 
 nonisolated struct RecordOptions: Codable, Sendable, Equatable {
     var target: CaptureTarget
+    /// A label to tell the recording apart from others, also accepted in place of its ID
+    var name: String?
     /// Stops the recording automatically after this many seconds
     var durationSeconds: Double?
 }
@@ -96,23 +118,38 @@ nonisolated struct ControlResponse: Codable, Sendable {
 }
 
 nonisolated enum ControlResult: Codable, Sendable, Equatable {
-    case status(RecorderStatus)
     case displays([DisplayInfo])
     case windows([WindowInfo])
     case apps([AppInfo])
     case recording(RecordingInfo)
+    case recordings([RecordingInfo])
 }
 
-nonisolated struct RecorderStatus: Codable, Sendable, Equatable {
-    /// `idle`, `recording`, `paused` or `stopping`
-    var state: String
-    var durationSeconds: Double
-    /// Where the active recording is written to, known as soon as it starts
-    var outputPath: String?
-}
-
+/// A recording started from the command line, active or recently ended
 nonisolated struct RecordingInfo: Codable, Sendable, Equatable {
+
+    enum State: String, Codable, Sendable {
+        case recording, paused, stopping
+        /// Saved to ``RecordingInfo/outputPath``
+        case finished
+        /// Ended without a usable file, see ``RecordingInfo/error``
+        case failed
+    }
+
+    /// A short ID, unique while the app runs
+    var id: String
+    var name: String?
+    var state: State
+    /// What is recorded, such as `display 1`, `window 1234 "Inbox"` or `app com.apple.Safari`
+    var target: String
+    var startedAt: Date
+    var endedAt: Date?
+    /// Recorded time, excluding pauses
+    var durationSeconds: Double
+    /// Where the recording is written to, known as soon as it starts
     var outputPath: String
+    /// Why a failed recording ended
+    var error: String?
 }
 
 nonisolated struct DisplayInfo: Codable, Sendable, Equatable {
@@ -144,7 +181,6 @@ nonisolated struct ControlError: Error, Codable, Sendable, Equatable {
         case disabled
         case notFound = "not_found"
         case ambiguous
-        case alreadyRecording = "already_recording"
         case notRecording = "not_recording"
         case permissionDenied = "permission_denied"
         case failed

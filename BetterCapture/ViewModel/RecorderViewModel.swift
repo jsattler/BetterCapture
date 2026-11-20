@@ -32,12 +32,6 @@ final class RecorderViewModel {
     private(set) var lastError: Error?
     private(set) var selectedContentFilter: SCContentFilter?
 
-    /// Where the active recording is written to, set as soon as it starts
-    private(set) var currentOutputURL: URL?
-
-    /// The file of the most recent recording that was saved successfully
-    private(set) var lastRecordingURL: URL?
-
     /// The source rectangle for area selection (in display points, top-left origin)
     private(set) var selectedSourceRect: CGRect?
 
@@ -267,34 +261,6 @@ final class RecorderViewModel {
         }
     }
 
-    /// Selects content chosen without the picker or area overlay, such as from the command line
-    /// - Parameters:
-    ///   - filter: The content to capture
-    ///   - sourceRect: The area to capture within a display filter (display points, top-left origin)
-    ///   - screen: The screen the area is on, used to show its border while recording
-    func selectContent(_ filter: SCContentFilter, sourceRect: CGRect?, screen: NSScreen?) async throws {
-        captureEngine.clearSelection()
-        recordingOverlay.dismiss()
-        selectionBorderFrame.dismiss()
-
-        selectedSourceRect = sourceRect
-        selectedScreen = screen
-        selectedScreenRect = nil
-        if let sourceRect, let screen {
-            // Flip from the display's top-left origin to the bottom-left origin of screen coordinates
-            selectedScreenRect = CGRect(
-                x: screen.frame.minX + sourceRect.minX,
-                y: screen.frame.maxY - sourceRect.maxY,
-                width: sourceRect.width,
-                height: sourceRect.height
-            )
-        }
-
-        selectedContentFilter = filter
-        try await captureEngine.updateFilter(filter)
-        await previewService.setContentFilter(filter, sourceRect: sourceRect)
-    }
-
     /// Starts a new recording session
     func startRecording() async {
         guard canStartRecording else {
@@ -327,7 +293,6 @@ final class RecorderViewModel {
 
             // Setup asset writer
             let outputURL = settings.generateOutputURL()
-            currentOutputURL = outputURL
             try assetWriter.setup(url: outputURL, settings: settings, videoSize: videoSize)
             try assetWriter.startWriting()
             logger.info("AssetWriter ready")
@@ -360,7 +325,6 @@ final class RecorderViewModel {
         } catch {
             state = .idle
             lastError = error
-            currentOutputURL = nil
             cameraSession.stop()
             selectionBorderFrame.dismiss()
 
@@ -402,8 +366,6 @@ final class RecorderViewModel {
 
             state = .idle
             recordingDuration = 0
-            currentOutputURL = nil
-            lastRecordingURL = outputURL
 
             logger.info("Recording stopped and saved to: \(outputURL.lastPathComponent)")
 
@@ -428,7 +390,6 @@ final class RecorderViewModel {
         } catch {
             state = .idle
             lastError = error
-            currentOutputURL = nil
             assetWriter.cancel()
             settings.stopAccessingOutputDirectory()
             notificationService.sendRecordingFailedNotification(error: error)
@@ -496,69 +457,12 @@ final class RecorderViewModel {
     }
 
     private func getContentSize(from filter: SCContentFilter) async -> CGSize {
-        // Apply scale if Capture Native Resolution setting is enabled
-        let applyScale: Bool = settings.captureNativeResolution
-
-        // If area selection is active, use the source rect dimensions.
         // The sourceRect is already snapped to even pixel counts in presentAreaSelection().
-        if let sourceRect = selectedSourceRect {
-            return CaptureSizeCalculator.videoSize(
-                contentRect: sourceRect,
-                scale: CGFloat(filter.pointPixelScale),
-                useNativeResolution: applyScale
-            )
-        }
-
-        // Get the content rect from the filter
-        let rect = filter.contentRect
-
-        if rect.width > 0 && rect.height > 0 {
-            return CaptureSizeCalculator.videoSize(
-                contentRect: rect,
-                scale: pointPixelScale(for: filter),
-                useNativeResolution: applyScale
-            )
-        }
-
-        // Fallback to main screen size
-        if let screen = NSScreen.main {
-            return CGSize(
-                width: applyScale ? screen.frame.width * screen.backingScaleFactor : screen.frame.width,
-                height: applyScale ? screen.frame.height * screen.backingScaleFactor : screen.frame.height
-            )
-        }
-
-        return CGSize(width: 1920, height: 1080)
-    }
-
-    /// The point-to-pixel scale to size the capture with.
-    ///
-    /// Window captures cannot trust `SCContentFilter.pointPixelScale`: it reports the main
-    /// display's scale for a window on a display arranged above the primary one, which sizes the
-    /// video larger than ScreenCaptureKit renders and pads the output. Resolve the scale from the
-    /// display the window actually occupies instead.
-    private func pointPixelScale(for filter: SCContentFilter) -> CGFloat {
-        let reported = CGFloat(filter.pointPixelScale)
-
-        guard filter.style == .window, let window = filter.includedWindows.first else {
-            return reported
-        }
-
-        return CaptureSizeCalculator.windowScale(
-            windowFrame: window.frame,
-            displays: Self.connectedDisplays(),
-            fallback: reported
+        CaptureSizeCalculator.videoSize(
+            for: filter,
+            sourceRect: selectedSourceRect,
+            useNativeResolution: settings.captureNativeResolution
         )
-    }
-
-    /// The connected displays in the global CoreGraphics space that `SCWindow.frame` uses.
-    private static func connectedDisplays() -> [DisplayGeometry] {
-        NSScreen.screens.compactMap { screen in
-            guard let displayID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else {
-                return nil
-            }
-            return DisplayGeometry(frame: CGDisplayBounds(displayID), scaleFactor: screen.backingScaleFactor)
-        }
     }
 }
 
