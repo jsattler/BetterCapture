@@ -65,6 +65,8 @@ struct SettingsView: View {
                     AudioSettingsView(settings: settings, audioDeviceService: audioDeviceService)
                 case .shortcuts:
                     ShortcutsSettingsView()
+                case .commandLine:
+                    CommandLineSettingsView(settings: settings)
                 }
             }
             .navigationTitle(navigation.current.rawValue)

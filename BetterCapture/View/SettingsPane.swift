@@ -11,6 +11,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
     case video = "Video"
     case audio = "Audio"
     case shortcuts = "Shortcuts"
+    case commandLine = "Command Line"
 
     var id: String { rawValue }
 
@@ -20,6 +21,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .video: "video.fill"
         case .audio: "waveform"
         case .shortcuts: "command"
+        case .commandLine: "terminal.fill"
         }
     }
 
@@ -29,6 +31,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .video: .blue
         case .audio: .pink
         case .shortcuts: .indigo
+        case .commandLine: .teal
         }
     }
 }

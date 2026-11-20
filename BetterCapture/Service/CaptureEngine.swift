@@ -54,11 +54,20 @@ final class CaptureEngine: NSObject {
     private let audioSampleQueue = DispatchQueue(label: "com.bettercapture.audioSampleQueue", qos: .userInteractive)
     private let microphoneSampleQueue = DispatchQueue(label: "com.bettercapture.microphoneSampleQueue", qos: .userInteractive)
 
+    /// Whether this engine observes the shared content sharing picker
+    private let usesPicker: Bool
+
     // MARK: - Initialization
 
-    override init() {
+    /// - Parameter usesPicker: Whether content is chosen with the system picker. Engines that
+    ///   are handed their content directly, such as for command-line recordings, must not
+    ///   observe the shared picker, or they would pick up the menu bar's selections.
+    init(usesPicker: Bool = true) {
+        self.usesPicker = usesPicker
         super.init()
-        setupPicker()
+        if usesPicker {
+            setupPicker()
+        }
     }
 
     // MARK: - Picker Management
@@ -337,7 +346,9 @@ final class CaptureEngine: NSObject {
     }
 
     deinit {
-        picker.remove(self)
+        if usesPicker {
+            picker.remove(self)
+        }
     }
 }
 
